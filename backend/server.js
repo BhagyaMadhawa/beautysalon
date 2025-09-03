@@ -21,12 +21,12 @@ app.use(cookieParser());
 
 // CORS configuration for multiple origins
 const allowedOrigins = [
-  'https://beauty-salons-t1nr.vercel.app',
+  'https://beautysalon-orcin.vercel.app/',
   'https://beautysalon-qq6r.vercel.app/',
   'http://localhost:5173', // for local development
   'http://localhost:3000',
   'http://localhost:5000',
-  'https://beauty-salons-t1nr.vercel.app'
+  'https://beautysalon-orcin.vercel.app/'
 ];
 
 app.use(
