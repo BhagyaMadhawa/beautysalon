@@ -1,4 +1,4 @@
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "https://beautysalon-qq6r.vercel.app/";
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "https://beautysalon-qq6r.vercel.app";
 
 export async function api(path, { method = "GET", body, headers } = {}) {
   const token = localStorage.getItem("token"); // optional fallback
