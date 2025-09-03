@@ -62,6 +62,7 @@ app.use(
 
 // ---- Health route ----
 app.get('/health', (_req, res) => res.json({ ok: true }));
+app.get('/api/health', (_req, res) => res.json({ ok: true }));
 
 // ---- Dynamically mount your route modules ----
 async function safeMount(path, loader) {
