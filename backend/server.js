@@ -1,3 +1,4 @@
+// backend/server.js
 import 'dotenv/config';
 import express from 'express';
 import cookieParser from 'cookie-parser';
@@ -19,77 +20,70 @@ app.use(morgan('dev'));
 app.use(express.json());
 app.use(cookieParser());
 
-// CORS configuration for multiple origins
+// CORS configuration (no trailing slashes)
 const allowedOrigins = [
-  'https://beautysalon-orcin.vercel.app/',
-  'https://beautysalon-qq6r.vercel.app/',
-  'http://localhost:5173', // for local development
+  'https://beautysalon-orcin.vercel.app',
+  'https://beautysalon-qq6r.vercel.app',
+  'http://localhost:5173',
   'http://localhost:3000',
-  'http://localhost:5000',
-  'https://beautysalon-orcin.vercel.app/'
+  'http://localhost:5000'
 ];
 
 app.use(
   cors({
-    origin: function (origin, callback) {
-      // Allow requests with no origin (like mobile apps or curl requests)
+    origin(origin, callback) {
       if (!origin) return callback(null, true);
-
-      if (allowedOrigins.indexOf(origin) !== -1) {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
+      if (allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
+        return callback(null, true);
       }
+      return callback(new Error('Not allowed by CORS'));
     },
     credentials: true
   })
 );
 
+// NOTE about uploads on Vercel:
+// The runtime filesystem is read-only. Serving *existing, built-in* files is fine,
+// but you cannot save new uploads to /backend/uploads at runtime.
+// Consider S3/Cloudflare R2/Vercel Blob for user uploads.
 import path from 'path';
 import { fileURLToPath } from 'url';
+import fs from 'fs';
 
-// Get the current directory path
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Debug: log the uploads directory path
 const uploadsPath = path.join(__dirname, 'uploads');
 console.log('Serving static files from:', uploadsPath);
 
-// Check if the uploads directory exists
-import fs from 'fs';
 if (fs.existsSync(uploadsPath)) {
   console.log('Uploads directory exists');
-
-  // List files in uploads directory for debugging
-  fs.readdir(uploadsPath, (err, files) => {
-    if (err) {
-      console.error('Error reading uploads directory:', err);
-    } else {
-      console.log('Files in uploads directory:', files.slice(0, 5)); // Show first 5 files
-    }
-  });
+  // Be careful: listing many files increases cold start time
+  try {
+    const files = fs.readdirSync(uploadsPath);
+    console.log('Files in uploads directory (first 5):', files.slice(0, 5));
+  } catch (e) {
+    console.error('Error reading uploads directory:', e);
+  }
 } else {
-  console.error('Uploads directory does not exist!');
+  console.warn('Uploads directory does not exist at build/runtime.');
 }
 
-// Serve static files from uploads directory using absolute path
-app.use('/uploads', express.static(uploadsPath, {
-  fallthrough: false // Don't fall through to next middleware if file not found
-}));
+app.use(
+  '/uploads',
+  express.static(uploadsPath, { fallthrough: false })
+);
 
 app.get('/health', (_req, res) => res.json({ ok: true }));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/pro', proRoutes);
-app.use("/api/owner", ownerRoutes);
+app.use('/api/owner', ownerRoutes);
 app.use('/api/beauty-pro', beautyProRoutes);
 app.use('/api/salons', salonRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api', reviewRoutes);
 app.use('/api/services', servicesRoutes);
-
-
 
 // Not found
 app.use((req, res) => res.status(404).json({ message: 'Route not found' }));
@@ -100,5 +94,5 @@ app.use((err, _req, res, _next) => {
   res.status(500).json({ message: 'Internal server error' });
 });
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`API listening on http://localhost:${PORT}`));
+// ❌ Do NOT call app.listen() on Vercel
+export default app;
