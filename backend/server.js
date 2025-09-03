@@ -5,14 +5,9 @@ import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import morgan from 'morgan';
 
-import authRoutes from './routes/authRoutes.js';
-import proRoutes from './routes/proRoutes.js';
-import ownerRoutes from "./routes/ownerRoutes.js";
-import beautyProRoutes from './routes/beautyProRoutes.js';
-import salonRoutes from './routes/salonRoutes.js';
-import adminRoutes from './routes/adminRoutes.js';
-import reviewRoutes from './routes/reviewRoutes.js';
-import servicesRoutes from './routes/servicesRoutes.js';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import fs from 'fs';
 
 const app = express();
 
@@ -42,14 +37,7 @@ app.use(
   })
 );
 
-// NOTE about uploads on Vercel:
-// The runtime filesystem is read-only. Serving *existing, built-in* files is fine,
-// but you cannot save new uploads to /backend/uploads at runtime.
-// Consider S3/Cloudflare R2/Vercel Blob for user uploads.
-import path from 'path';
-import { fileURLToPath } from 'url';
-import fs from 'fs';
-
+// ---- Static uploads (note: Vercel is read-only at runtime) ----
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -57,16 +45,14 @@ const uploadsPath = path.join(__dirname, 'uploads');
 console.log('Serving static files from:', uploadsPath);
 
 if (fs.existsSync(uploadsPath)) {
-  console.log('Uploads directory exists');
-  // Be careful: listing many files increases cold start time
   try {
     const files = fs.readdirSync(uploadsPath);
-    console.log('Files in uploads directory (first 5):', files.slice(0, 5));
+    console.log('Uploads dir exists. Example files:', files.slice(0, 5));
   } catch (e) {
-    console.error('Error reading uploads directory:', e);
+    console.error('Error reading uploads dir:', e);
   }
 } else {
-  console.warn('Uploads directory does not exist at build/runtime.');
+  console.warn('Uploads directory does not exist at runtime.');
 }
 
 app.use(
@@ -74,21 +60,34 @@ app.use(
   express.static(uploadsPath, { fallthrough: false })
 );
 
+// ---- Health route ----
 app.get('/health', (_req, res) => res.json({ ok: true }));
 
-app.use('/api/auth', authRoutes);
-app.use('/api/pro', proRoutes);
-app.use('/api/owner', ownerRoutes);
-app.use('/api/beauty-pro', beautyProRoutes);
-app.use('/api/salons', salonRoutes);
-app.use('/api/admin', adminRoutes);
-app.use('/api', reviewRoutes);
-app.use('/api/services', servicesRoutes);
+// ---- Dynamically mount your route modules ----
+async function safeMount(path, loader) {
+  try {
+    const mod = await loader();
+    const router = mod.default || mod;
+    app.use(path, router);
+    console.log(`[mount] OK ${path}`);
+  } catch (e) {
+    console.error(`[mount] FAILED ${path}:`, e);
+  }
+}
 
-// Not found
+// Use top-level await (Node 18+ supports it in ES modules)
+await safeMount('/api/auth',       () => import('./routes/authRoutes.js'));
+await safeMount('/api/pro',        () => import('./routes/proRoutes.js'));
+await safeMount('/api/owner',      () => import('./routes/ownerRoutes.js'));
+await safeMount('/api/beauty-pro', () => import('./routes/beautyProRoutes.js'));
+await safeMount('/api/salons',     () => import('./routes/salonRoutes.js'));
+await safeMount('/api/admin',      () => import('./routes/adminRoutes.js'));
+await safeMount('/api',            () => import('./routes/reviewRoutes.js'));
+await safeMount('/api/services',   () => import('./routes/servicesRoutes.js'));
+
+// ---- Fallbacks ----
 app.use((req, res) => res.status(404).json({ message: 'Route not found' }));
 
-// Error handler
 app.use((err, _req, res, _next) => {
   console.error('[UNCAUGHT ERROR]', err);
   res.status(500).json({ message: 'Internal server error' });
