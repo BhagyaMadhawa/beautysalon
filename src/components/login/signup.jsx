@@ -65,7 +65,7 @@ export default function SignupPage() {
           const formData = new FormData();
           formData.append("profile_image", profileFile);
 
-          const uploadResponse = await fetch("https://backend-iota-ten-45.vercel.app/api/auth/upload/profile-image", {
+          const uploadResponse = await fetch("https://beautysalon-qq6r.vercel.app/api/auth/upload/profile-image", {
             method: "POST",
             body: formData,
           });

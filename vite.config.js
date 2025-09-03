@@ -7,7 +7,7 @@ export default defineConfig({
   server: {
    proxy: {
   '/api': {
-    target: 'https://backend-iota-ten-45.vercel.app',
+    target: 'https://beautysalon-qq6r.vercel.app',
     changeOrigin: true,
     // rewrite: (path) => path.replace(/^\/api/, ''), // Optional
   }
