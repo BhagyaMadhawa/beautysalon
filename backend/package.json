@@ -1,16 +1,14 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "",
+  "private": true,
   "type": "module",
   "main": "server.js",
   "scripts": {
+    "build": "echo \"no build step\"",
     "dev": "node --watch server.js",
     "start": "node server.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
     "@neondatabase/serverless": "^1.0.1",
     "bcrypt": "^6.0.0",
@@ -22,6 +20,10 @@
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.0",
     "multer": "^2.0.2",
-    "pg": "^8.16.2"
+    "pg": "^8.16.2",
+    "serverless-http": "^3.2.0"
+  },
+  "engines": {
+    "node": ">=18"
   }
 }
