@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coverage generated="1751773246202" clover="3.2.0">
+  <project timestamp="1751773246202" name="All files">
+    <metrics statements="15" coveredstatements="15" conditionals="12" coveredconditionals="12" methods="4" coveredmethods="4" elements="31" coveredelements="31" complexity="0" loc="15" ncloc="15" packages="1" files="1" classes="1"/>
+    <file name="auth.js" path="C:\Users\akila\Desktop\movieapp\my-app\backend\middleware\auth.js">
+      <metrics statements="15" coveredstatements="15" conditionals="12" coveredconditionals="12" methods="4" coveredmethods="4"/>
+      <line num="1" count="1" type="stmt"/>
+      <line num="3" count="1" type="cond" truecount="2" falsecount="0"/>
+      <line num="7" count="3" type="stmt"/>
+      <line num="8" count="3" type="cond" truecount="2" falsecount="0"/>
+      <line num="10" count="3" type="cond" truecount="2" falsecount="0"/>
+      <line num="12" count="2" type="stmt"/>
+      <line num="13" count="2" type="cond" truecount="2" falsecount="0"/>
+      <line num="14" count="1" type="stmt"/>
+      <line num="15" count="1" type="stmt"/>
+      <line num="21" count="3" type="stmt"/>
+      <line num="22" count="3" type="cond" truecount="2" falsecount="0"/>
+      <line num="23" count="2" type="cond" truecount="2" falsecount="0"/>
+      <line num="24" count="1" type="stmt"/>
+      <line num="26" count="1" type="stmt"/>
+      <line num="30" count="1" type="stmt"/>
+    </file>
+  </project>
+</coverage>
