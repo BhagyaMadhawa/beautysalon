@@ -70,7 +70,7 @@ async function safeMount(path, loader) {
   }
 }
 
-await safeMount('/api/auth',       () => import('./routes/authRoutes.js'));
+await safeMount('/auth',       () => import('./routes/authRoutes.js'));
 await safeMount('/api/pro',        () => import('./routes/proRoutes.js'));
 await safeMount('/api/owner',      () => import('./routes/ownerRoutes.js'));
 await safeMount('/api/beauty-pro', () => import('./routes/beautyProRoutes.js'));
