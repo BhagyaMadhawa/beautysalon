@@ -71,13 +71,13 @@ async function safeMount(path, loader) {
 }
 
 await safeMount('/auth',       () => import('./routes/authRoutes.js'));
-await safeMount('/api/pro',        () => import('./routes/proRoutes.js'));
-await safeMount('/api/owner',      () => import('./routes/ownerRoutes.js'));
-await safeMount('/api/beauty-pro', () => import('./routes/beautyProRoutes.js'));
-await safeMount('/api/salons',     () => import('./routes/salonRoutes.js'));
-await safeMount('/api/admin',      () => import('./routes/adminRoutes.js'));
-await safeMount('/api',            () => import('./routes/reviewRoutes.js'));
-await safeMount('/api/services',   () => import('./routes/servicesRoutes.js'));
+await safeMount('/pro',        () => import('./routes/proRoutes.js'));
+await safeMount('/owner',      () => import('./routes/ownerRoutes.js'));
+await safeMount('/beauty-pro', () => import('./routes/beautyProRoutes.js'));
+await safeMount('/salons',     () => import('./routes/salonRoutes.js'));
+await safeMount('/admin',      () => import('./routes/adminRoutes.js'));
+await safeMount('/reviews',    () => import('./routes/reviewRoutes.js'));
+await safeMount('/services',   () => import('./routes/servicesRoutes.js'));
 
 // ---- 404 + error handler ----
 app.use((req, res) => res.status(404).json({ message: 'Route not found' }));
