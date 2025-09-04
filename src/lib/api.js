@@ -76,7 +76,7 @@ await safeMount('/owner',      () => import('./routes/ownerRoutes.js'));
 await safeMount('/beauty-pro', () => import('./routes/beautyProRoutes.js'));
 await safeMount('/salons',     () => import('./routes/salonRoutes.js'));
 await safeMount('/admin',      () => import('./routes/adminRoutes.js'));
-await safeMount('/reviews',    () => import('./routes/reviewRoutes.js'));
+await safeMount('/',           () => import('./routes/reviewRoutes.js'));
 await safeMount('/services',   () => import('./routes/servicesRoutes.js'));
 
 // ---- 404 + error handler ----
