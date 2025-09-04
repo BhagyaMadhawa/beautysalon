@@ -1,19 +1,11 @@
-// backend/db.js (ESM, for Vercel serverless functions)
-import { neon } from '@neondatabase/serverless';
+import pg from 'pg';
+const { Pool } = pg;
 
-if (!process.env.DATABASE_URL) {
-  throw new Error("DATABASE_URL is not set");
-}
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL, // must be the pooled URL (host has -pooler)
+  ssl: { rejectUnauthorized: false }
+});
 
-// Neon serverless client
-export const sql = neon(process.env.DATABASE_URL);
-
-// Helper to mimic pg.query style
-export const query = async (text, params = []) => {
-  if (!params.length) {
-    return sql(text);                 // sql`select 1`
-  }
-  return sql(text, params);           // sql('select $1', [value])
-};
-
-export default { sql, query };
+export const query = (text, params) => pool.query(text, params);
+export const getClient = () => pool.connect();
+export default { query, getClient };
