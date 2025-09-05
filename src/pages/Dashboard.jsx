@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 
 import DashBoard from '../components/DashBoard/dashboard';
 import ApprovalStatusPage from '../components/DashBoard/ApprovalStatusPage';
+import { api } from '../lib/api';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -45,7 +46,7 @@ const Dashboard = () => {
       try {
         setSalonLoading(true);
         const token = localStorage.getItem('token');
-        const response = await fetch(`https://beautysalon-qq6r.vercel.app/api/salons/user/${user.id}`, {
+        const response = await api(`/api/salons/user/${user.id}`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
