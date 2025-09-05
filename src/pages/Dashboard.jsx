@@ -45,7 +45,7 @@ const Dashboard = () => {
       try {
         setSalonLoading(true);
         const token = localStorage.getItem('token');
-        const response = await fetch(`/api/salons/user/${user.id}`, {
+        const response = await fetch(`https://beautysalon-qq6r.vercel.app/api/salons/user/${user.id}`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
