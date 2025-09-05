@@ -26,14 +26,11 @@ const allowedOrigins = [
 
 app.use(
   cors({
-    origin(origin, callback) {
-      if (!origin) return callback(null, true);
-      if (allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
-        return callback(null, true);
-      }
-      return callback(new Error('Not allowed by CORS'));
-    },
-    credentials: true
+    origin: allowedOrigins,
+    credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    optionsSuccessStatus: 200
   })
 );
 
