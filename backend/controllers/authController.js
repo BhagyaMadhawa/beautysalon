@@ -66,7 +66,7 @@ export const signup = async (req, res) => {
         maxAge: 1000 * 60 * 60 * 24 * 7
       })
       .status(201)
-      .json({ message: 'User created', user });
+      .json({ message: 'User created', user, token });
   } catch (err) {
     try { await client.query('ROLLBACK'); } catch {}
     console.error('[SIGNUP ERROR]', err);
@@ -116,7 +116,8 @@ export const login = async (req, res) => {
           first_name: user.first_name,
           last_name: user.last_name,
           profile_image_url: user.profile_image_url
-        }
+        },
+        token
       });
   } catch (err) {
     console.error('[LOGIN ERROR]', err);
@@ -125,7 +126,7 @@ export const login = async (req, res) => {
 };
 
 export const me = async (req, res) => {
-  const token = req.cookies?.token;
+  const token = req.cookies?.token || req.headers.authorization?.replace('Bearer ', '');
   if (!token) return res.status(401).json({ message: 'Not authenticated' });
 
   const payload = verifyToken(token);
