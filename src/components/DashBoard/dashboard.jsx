@@ -41,12 +41,24 @@ const DashBoard = ({ userId, salonId }) => {
   }, [userId]);
 
   const renderTabContent = () => {
+    // Restrict clients to only dashboard and messages tabs
+    if (userRole === 'client' && !['dashboard', 'messages'].includes(activeTab)) {
+      return (
+        <div className="w-full p-6">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">Access Restricted</h1>
+            <p className="text-gray-600">You don't have permission to access this section.</p>
+          </div>
+        </div>
+      );
+    }
+
     switch (activeTab) {
       case "dashboard":
         return (
           <div className="w-full p-6">
             <h1 className="text-2xl font-bold text-gray-900 mb-6">Dashboard Overview</h1>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
               {sampleStats.map((stat, index) => (
                 <div key={index} className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
