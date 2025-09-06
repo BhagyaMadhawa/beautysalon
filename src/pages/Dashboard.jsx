@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from '../contexts/AuthContext';
+import { api } from '../lib/api';
 
 import DashBoard from '../components/DashBoard/dashboard';
 import ApprovalStatusPage from '../components/DashBoard/ApprovalStatusPage';
@@ -44,26 +45,16 @@ const Dashboard = () => {
 
       try {
         setSalonLoading(true);
-        const token = localStorage.getItem('token');
-        const response = await fetch(`/api/salons/user/${user.id}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          setSalonId(data.salon.id);
-        } else if (response.status === 404) {
+        const data = await api(`/api/salons/user/${user.id}`);
+        setSalonId(data.salon.id);
+      } catch (error) {
+        console.error('Error fetching salon:', error);
+        if (error.message.includes('404') || error.message.includes('Not Found')) {
           // User doesn't have a salon yet
           setSalonId(null);
         } else {
-          const error = await response.json();
-          setSalonError(error.error || 'Failed to fetch salon information');
+          setSalonError(error.message || 'Failed to fetch salon information');
         }
-      } catch (error) {
-        console.error('Error fetching salon:', error);
-        setSalonError('Failed to fetch salon information');
       } finally {
         setSalonLoading(false);
       }
