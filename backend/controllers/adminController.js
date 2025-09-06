@@ -185,9 +185,8 @@ export const rejectUser = async (req, res) => {
 export const deleteUser = async (req, res) => {
   const { id } = req.params;
 
-  const client = await db.connect();
+  const client = await db.getClient(); // ✅ use getClient
   try {
-    // Check if user exists
     const { rows: userRows } = await client.query(
       'SELECT * FROM users WHERE id = $1',
       [id]
@@ -202,27 +201,23 @@ export const deleteUser = async (req, res) => {
 
     await client.query('BEGIN');
 
-    // Soft delete the user
     await client.query(
       'UPDATE users SET status = $1, updated_at = NOW() WHERE id = $2',
-      [2, id] // 2 = deleted
+      [2, id]
     );
 
-    // If user owns or is professional, disable their salon
     if (['owner', 'professional'].includes(user.requesting_role)) {
       await client.query(
         'UPDATE salons SET status = $1, updated_at = NOW() WHERE user_id = $2',
-        [0, id] // 0 = inactive
+        [0, id]
       );
     }
 
-    // Mark user favorites inactive
     await client.query(
       'UPDATE user_favorites SET status = $1, updated_at = NOW() WHERE user_id = $2',
       [0, id]
     );
 
-    // Mark reviews as deleted
     await client.query(
       'UPDATE reviews SET status = $1, updated_at = NOW() WHERE user_id = $2',
       [0, id]
@@ -239,4 +234,5 @@ export const deleteUser = async (req, res) => {
     client.release();
   }
 };
+
 
