@@ -183,56 +183,60 @@ export const rejectUser = async (req, res) => {
 
 // Delete user (soft delete)
 export const deleteUser = async (req, res) => {
-  try {
-    const { id } = req.params;
+  const { id } = req.params;
 
+  const client = await db.connect();
+  try {
     // Check if user exists
-    const { rows: userRows } = await db.query('SELECT * FROM users WHERE id = $1', [id]);
+    const { rows: userRows } = await client.query(
+      'SELECT * FROM users WHERE id = $1',
+      [id]
+    );
+
     if (userRows.length === 0) {
+      client.release();
       return res.status(404).json({ error: 'User not found' });
     }
 
     const user = userRows[0];
 
-    // Start transaction for data consistency
-    await db.query('BEGIN');
+    await client.query('BEGIN');
 
-    try {
-      // Soft delete the user
-      await db.query(
-        'UPDATE users SET status = $1, updated_at = NOW() WHERE id = $2',
-        [2, id] // 2 = deleted
+    // Soft delete the user
+    await client.query(
+      'UPDATE users SET status = $1, updated_at = NOW() WHERE id = $2',
+      [2, id] // 2 = deleted
+    );
+
+    // If user owns or is professional, disable their salon
+    if (['owner', 'professional'].includes(user.requesting_role)) {
+      await client.query(
+        'UPDATE salons SET status = $1, updated_at = NOW() WHERE user_id = $2',
+        [0, id] // 0 = inactive
       );
-
-      // If user has a salon, mark it as inactive
-      if (user.requesting_role === 'owner' || user.requesting_role === 'professional') {
-        await db.query(
-          'UPDATE salons SET status = $1, updated_at = NOW() WHERE user_id = $2',
-          [0, id] // 0 = inactive
-        );
-      }
-
-      // Mark user favorites as inactive
-      await db.query(
-        'UPDATE user_favorites SET status = $1, updated_at = NOW() WHERE user_id = $2',
-        [0, id] // 0 = removed
-      );
-
-      // Mark reviews as deleted
-      await db.query(
-        'UPDATE reviews SET status = $1, updated_at = NOW() WHERE user_id = $2',
-        [0, id] // 0 = deleted
-      );
-
-      await db.query('COMMIT');
-
-      res.json({ message: 'User deleted successfully' });
-    } catch (error) {
-      await db.query('ROLLBACK');
-      throw error;
     }
+
+    // Mark user favorites inactive
+    await client.query(
+      'UPDATE user_favorites SET status = $1, updated_at = NOW() WHERE user_id = $2',
+      [0, id]
+    );
+
+    // Mark reviews as deleted
+    await client.query(
+      'UPDATE reviews SET status = $1, updated_at = NOW() WHERE user_id = $2',
+      [0, id]
+    );
+
+    await client.query('COMMIT');
+
+    res.json({ message: 'User deleted successfully' });
   } catch (error) {
+    await client.query('ROLLBACK');
     console.error('Error deleting user:', error);
     res.status(500).json({ error: 'Failed to delete user' });
+  } finally {
+    client.release();
   }
 };
+
