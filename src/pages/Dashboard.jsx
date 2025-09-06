@@ -5,7 +5,6 @@ import { api } from '../lib/api';
 
 import DashBoard from '../components/DashBoard/dashboard';
 import ApprovalStatusPage from '../components/DashBoard/ApprovalStatusPage';
-import { api } from '../lib/api';
 
 const Dashboard = () => {
   const navigate = useNavigate();
