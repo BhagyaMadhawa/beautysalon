@@ -213,10 +213,10 @@ export const deleteUser = async (req, res) => {
       );
     }
 
-    await client.query(
-      'UPDATE user_favorites SET status = $1, updated_at = NOW() WHERE user_id = $2',
-      [0, id]
-    );
+    // await client.query(
+    //   'UPDATE user_favorites SET status = $1, updated_at = NOW() WHERE user_id = $2',
+    //   [0, id]
+    // );
 
     await client.query(
       'UPDATE reviews SET status = $1, updated_at = NOW() WHERE user_id = $2',
