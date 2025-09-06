@@ -30,6 +30,13 @@ const Dashboard = () => {
     const fetchSalon = async () => {
       if (!user?.id) return;
 
+      // If user is a client, skip salon fetch
+      if (user.role === 'client') {
+        setSalonId(null);
+        setSalonLoading(false);
+        return;
+      }
+
       // If salonId is passed from navigation state (e.g., after salon registration), use it
       if (navigationSalonId) {
         setSalonId(navigationSalonId);
