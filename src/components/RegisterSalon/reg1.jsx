@@ -3,7 +3,6 @@ import { motion } from "framer-motion";
 import { FaApple } from "react-icons/fa";
 import { Eye, EyeOff, Mail, Upload } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { api } from "../../lib/api";
 
 export default function SignupSalonOwner() {
   const [showPassword, setShowPassword] = useState(false);
@@ -91,7 +90,7 @@ export default function SignupSalonOwner() {
       }
 
       // Now submit registration data with profileImageUrl
-      const response = await api("/api/salons/owneuser", {
+      const response = await fetch("https://beautysalon-qq6r.vercel.app/api/salons/owneuser", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
