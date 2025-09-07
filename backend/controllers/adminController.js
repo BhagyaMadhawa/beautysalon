@@ -3,9 +3,49 @@ import db from '../db.js';
 // Get all users with optional filtering
 export const getAllUsers = async (req, res) => {
   try {
-    const { role, status, search } = req.query;
+    const { role, status, search, page = 1, pageSize = 10 } = req.query;
+    const offset = (page - 1) * pageSize;
     
-    let query = `
+    let baseQuery = `
+      FROM users u
+      LEFT JOIN user_addresses ua ON u.id = ua.user_id
+      WHERE u.role != 'admin'
+    `;
+    
+    const params = [];
+    let paramIndex = 1;
+    
+    if (role && role !== 'all') {
+      baseQuery += ` AND u.requesting_role = $${paramIndex}`;
+      params.push(role);
+      paramIndex++;
+    }
+    
+    if (status && status !== 'all') {
+      if (status === 'deleted') {
+        baseQuery += ` AND u.status = 2`;
+      } else {
+        baseQuery += ` AND u.approval_status = $${paramIndex}`;
+        params.push(status);
+        paramIndex++;
+      }
+    } else {
+      // By default, exclude deleted users
+      baseQuery += ` AND u.status != 2`;
+    }
+    
+    if (search) {
+      baseQuery += ` AND (u.first_name ILIKE $${paramIndex} OR u.last_name ILIKE $${paramIndex} OR u.email ILIKE $${paramIndex})`;
+      params.push(`%${search}%`);
+      paramIndex++;
+    }
+    
+    // Get total count for pagination
+    const countResult = await db.query(`SELECT COUNT(*) ${baseQuery}`, params);
+    const totalCount = parseInt(countResult.rows[0].count, 10);
+    
+    // Get paginated results
+    const query = `
       SELECT 
         u.id,
         u.first_name,
@@ -19,38 +59,17 @@ export const getAllUsers = async (req, res) => {
         ua.country,
         ua.city,
         ua.postcode,
-        ua.full_address
-      FROM users u
-      LEFT JOIN user_addresses ua ON u.id = ua.user_id
-      WHERE u.role != 'admin'
+        ua.full_address,
+        u.status
+      ${baseQuery}
+      ORDER BY u.created_at DESC
+      LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
     `;
-    
-    const params = [];
-    let paramIndex = 1;
-    
-    if (role && role !== 'all') {
-      query += ` AND u.requesting_role = $${paramIndex}`;
-      params.push(role);
-      paramIndex++;
-    }
-    
-    if (status && status !== 'all') {
-      query += ` AND u.approval_status = $${paramIndex}`;
-      params.push(status);
-      paramIndex++;
-    }
-    
-    if (search) {
-      query += ` AND (u.first_name ILIKE $${paramIndex} OR u.last_name ILIKE $${paramIndex} OR u.email ILIKE $${paramIndex})`;
-      params.push(`%${search}%`);
-      paramIndex++;
-    }
-    
-    query += ` ORDER BY u.created_at DESC`;
+    params.push(pageSize, offset);
     
     const { rows } = await db.query(query, params);
     
-    res.json({ users: rows });
+    res.json({ users: rows, totalCount });
   } catch (error) {
     console.error('Error fetching users:', error);
     res.status(500).json({ error: 'Failed to fetch users' });
