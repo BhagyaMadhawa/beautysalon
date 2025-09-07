@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { FaApple } from "react-icons/fa";
 import { Eye, EyeOff, Mail, Upload } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { api } from "../../lib/api";
 
 export default function SignupSalonOwner() {
   const [showPassword, setShowPassword] = useState(false);
@@ -76,9 +77,10 @@ export default function SignupSalonOwner() {
       }
 
       // Create Owner User (no token)
-      const response = await fetch("https://beautysalon-qq6r.vercel.app/api/salons/owneuser", {
+      const response = await api("/api/salons/owneuser", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "omit",
         body: JSON.stringify({
           first_name: firstName.trim(),
           last_name: lastName.trim(),
