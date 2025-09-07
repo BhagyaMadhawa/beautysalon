@@ -24,6 +24,9 @@ export const getAllUsers = async (req, res) => {
     if (status && status !== 'all') {
       if (status === 'deleted') {
         baseQuery += ` AND u.status = 2`;
+      } else if (status === 'active') {
+        // Active means all non-deleted users (approved, pending, rejected)
+        baseQuery += ` AND u.status != 2`;
       } else {
         baseQuery += ` AND u.approval_status = $${paramIndex}`;
         params.push(status);
