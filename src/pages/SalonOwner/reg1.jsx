@@ -48,7 +48,7 @@ export default function SignupSalonOwner() {
   const uploadProfileImage = async (file) => {
     const formData = new FormData();
     formData.append("profile_image", file);
-    const res = await fetch("/api/salons/upload/profile-image", { method: "POST", body: formData });
+    const res = await fetch("https://beautysalon-qq6r.vercel.app/api/salons/upload/profile-image", { method: "POST", body: formData });
     if (!res.ok) throw new Error((await res.json()).error || "Failed to upload profile image.");
     const data = await res.json();
     return data.imageUrl; // server returns { imageUrl }

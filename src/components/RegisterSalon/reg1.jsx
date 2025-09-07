@@ -73,7 +73,7 @@ export default function SignupSalonOwner() {
         const formData = new FormData();
         formData.append("profile_image", profile);
 
-        const uploadResponse = await fetch("/api/salons/upload/profile-image", {
+        const uploadResponse = await fetch("https://beautysalon-qq6r.vercel.app/api/salons/upload/profile-image", {
           method: "POST",
           body: formData,
         });

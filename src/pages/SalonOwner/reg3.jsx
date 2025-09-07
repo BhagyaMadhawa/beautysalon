@@ -81,7 +81,7 @@ export default function PortfolioStep() {
             const formData = new FormData();
             formData.append("profile_image", image);
             
-            const res = await fetch("/api/salons/upload/profile-image", {
+            const res = await fetch("https://beautysalon-qq6r.vercel.app/api/salons/upload/profile-image", {
               method: "POST",
               body: formData,
             });
