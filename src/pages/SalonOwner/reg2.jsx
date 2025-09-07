@@ -81,7 +81,7 @@ export default function RegisterSalonForm() {
     setError(null);
 
     try {
-      const res = await fetch("/api/salons", {
+      const res = await fetch("https://beautysalon-qq6r.vercel.app/api/salons", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

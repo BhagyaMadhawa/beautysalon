@@ -37,7 +37,7 @@ export default function ManagePortfolioTab({ userId, salonId }) {
   const fetchPortfolios = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`/api/salons/${salonId}/portfolios`, {
+      const response = await fetch(`https://beautysalon-qq6r.vercel.app/api/salons/${salonId}/portfolios`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -87,7 +87,7 @@ export default function ManagePortfolioTab({ userId, salonId }) {
         setConfirmModal(prev => ({ ...prev, isOpen: false }));
         try {
           const token = localStorage.getItem('token');
-          const response = await fetch(`/api/salons/${salonId}/portfolios/${portfolioId}`, {
+          const response = await fetch(`https://beautysalon-qq6r.vercel.app/api/salons/${salonId}/portfolios/${portfolioId}`, {
             method: 'DELETE',
             headers: {
               'Authorization': `Bearer ${token}`
@@ -118,7 +118,7 @@ export default function ManagePortfolioTab({ userId, salonId }) {
         setConfirmModal(prev => ({ ...prev, isOpen: false }));
         try {
           const token = localStorage.getItem('token');
-          const response = await fetch(`/api/salons/${salonId}/portfolios/images/${imageId}`, {
+          const response = await fetch(`https://beautysalon-qq6r.vercel.app/api/salons/${salonId}/portfolios/images/${imageId}`, {
             method: 'DELETE',
             headers: {
               'Authorization': `Bearer ${token}`
@@ -151,7 +151,7 @@ export default function ManagePortfolioTab({ userId, salonId }) {
 
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch(`/api/salons/upload/profile-image`, {
+        const response = await fetch(`https://beautysalon-qq6r.vercel.app/api/salons/upload/profile-image`, {
           method: "POST",
           headers: {
             'Authorization': `Bearer ${token}`
@@ -174,7 +174,7 @@ export default function ManagePortfolioTab({ userId, salonId }) {
     if (album.id) {
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch(`/api/salons/${salonId}/portfolios/${album.id}/images`, {
+        const response = await fetch(`https://beautysalon-qq6r.vercel.app/api/salons/${salonId}/portfolios/${album.id}/images`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -224,7 +224,7 @@ export default function ManagePortfolioTab({ userId, salonId }) {
       const existingAlbums = filteredAlbums.filter(album => album.id);
 
       if (newAlbums.length > 0) {
-        const response = await fetch(`/api/salons/${salonId}/portfolios`, {
+        const response = await fetch(`https://beautysalon-qq6r.vercel.app/api/salons/${salonId}/portfolios`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -242,7 +242,7 @@ export default function ManagePortfolioTab({ userId, salonId }) {
       }
 
       for (const album of existingAlbums) {
-        await fetch(`/api/salons/${salonId}/portfolios/${album.id}`, {
+        await fetch(`https://beautysalon-qq6r.vercel.app/api/salons/${salonId}/portfolios/${album.id}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',

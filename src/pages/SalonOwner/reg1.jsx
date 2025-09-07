@@ -77,10 +77,9 @@ export default function SignupSalonOwner() {
       }
 
       // Create Owner User (no token)
-      const response = await api("/api/salons/owneuser", {
+      const response = await fetch("https://beautysalon-qq6r.vercel.app/api/salons/owneuser", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "omit",
         body: JSON.stringify({
           first_name: firstName.trim(),
           last_name: lastName.trim(),

@@ -21,7 +21,7 @@ const DashBoard = ({ userId, salonId }) => {
     const fetchUserRole = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch('/api/auth/me', {
+        const response = await fetch('https://beautysalon-qq6r.vercel.app/api/auth/me', {
           headers: {
             'Authorization': `Bearer ${token}`
           }

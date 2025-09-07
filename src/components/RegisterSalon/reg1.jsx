@@ -91,10 +91,9 @@ export default function SignupSalonOwner() {
       }
 
       // Now submit registration data with profileImageUrl
-      const response = await api("/api/salons/owneuser", {
+      const response = await fetch("https://beautysalon-qq6r.vercel.app/api/salons/owneuser", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "omit",
         body: JSON.stringify({
           first_name: firstName,
           last_name: lastName,

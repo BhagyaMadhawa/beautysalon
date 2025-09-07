@@ -86,7 +86,7 @@ export default function ListServices() {
     });
 
     try {
-      const response = await fetch(`/api/salons/${salonId}/services`, {
+      const response = await fetch(`https://beautysalon-qq6r.vercel.app/api/salons/${salonId}/services`, {
         method: "POST",
         body: formData,
       });

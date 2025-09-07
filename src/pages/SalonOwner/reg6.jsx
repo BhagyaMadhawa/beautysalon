@@ -32,7 +32,7 @@ export default function AddFAQStep() {
     }
     try {
       // Save FAQs
-      const res = await fetch(`/api/salons/${salonId}/faqs`, {
+      const res = await fetch(`https://beautysalon-qq6r.vercel.app/api/salons/${salonId}/faqs`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

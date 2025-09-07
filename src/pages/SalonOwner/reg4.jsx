@@ -76,7 +76,7 @@ export default function ListServices() {
           description: s.description || null,
         })),
       };
-      const res = await fetch(`/api/salons/${salonId}/services`, {
+      const res = await fetch(`https://beautysalon-qq6r.vercel.app/api/salons/${salonId}/services`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

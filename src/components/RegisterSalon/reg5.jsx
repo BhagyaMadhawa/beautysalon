@@ -52,7 +52,7 @@ export default function OperatingHoursStep() {
     }
 
     try {
-      const response = await fetch(`/api/salons/${salonId}/hours`, {
+      const response = await fetch(`https://beautysalon-qq6r.vercel.app/api/salons/${salonId}/hours`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ hours }),

@@ -79,7 +79,7 @@ export default function PortfolioStep() {
     }
 
     try {
-      const response = await fetch(`/api/salons/${salonId}/portfolios`, {
+      const response = await fetch(`https://beautysalon-qq6r.vercel.app/api/salons/${salonId}/portfolios`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ albums }),

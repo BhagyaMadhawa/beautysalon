@@ -31,7 +31,7 @@ export default function FaqsTab({ userId, salonId }) {
   const fetchFaqs = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`/api/salons/${salonId}/faqs`, {
+      const response = await fetch(`https://beautysalon-qq6r.vercel.app/api/salons/${salonId}/faqs`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -56,7 +56,7 @@ export default function FaqsTab({ userId, salonId }) {
     setSaving(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`/api/salons/${salonId}/faqs`, {
+      const response = await fetch(`https://beautysalon-qq6r.vercel.app/api/salons/${salonId}/faqs`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -86,7 +86,7 @@ export default function FaqsTab({ userId, salonId }) {
     setSaving(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`/api/salons/${salonId}/faqs/${faqId}`, {
+      const response = await fetch(`https://beautysalon-qq6r.vercel.app/api/salons/${salonId}/faqs/${faqId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -115,7 +115,7 @@ export default function FaqsTab({ userId, salonId }) {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`/api/salons/${salonId}/faqs/${faqId}`, {
+      const response = await fetch(`https://beautysalon-qq6r.vercel.app/api/salons/${salonId}/faqs/${faqId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`

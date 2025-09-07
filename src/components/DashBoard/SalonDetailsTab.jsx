@@ -44,7 +44,7 @@ export default function SalonDetailsTab({ userId, salonId }) {
       const token = localStorage.getItem('token');
 
       // Fetch salon basic info
-      const salonResponse = await fetch(`/api/salons/${salonId}`, {
+      const salonResponse = await fetch(`https://beautysalon-qq6r.vercel.app/api/salons/${salonId}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -62,7 +62,7 @@ export default function SalonDetailsTab({ userId, salonId }) {
       }
 
       // Fetch addresses
-      const addressesResponse = await fetch(`/api/salons/${salonId}/addresses`, {
+      const addressesResponse = await fetch(`https://beautysalon-qq6r.vercel.app/api/salons/${salonId}/addresses`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -82,7 +82,7 @@ export default function SalonDetailsTab({ userId, salonId }) {
       }
 
       // Fetch social links
-      const socialResponse = await fetch(`/api/salons/${salonId}/social-links`, {
+      const socialResponse = await fetch(`https://beautysalon-qq6r.vercel.app/api/salons/${salonId}/social-links`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -158,7 +158,7 @@ export default function SalonDetailsTab({ userId, salonId }) {
       const token = localStorage.getItem('token');
 
       // Update salon basic info
-      const salonResponse = await fetch(`/api/salons/${salonId}`, {
+      const salonResponse = await fetch(`https://beautysalon-qq6r.vercel.app/api/salons/${salonId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -175,7 +175,7 @@ export default function SalonDetailsTab({ userId, salonId }) {
       for (const address of addresses) {
         if (address.id) {
           // Update existing address
-          await fetch(`/api/salons/${salonId}/addresses/${address.id}`, {
+          await fetch(`https://beautysalon-qq6r.vercel.app/api/salons/${salonId}/addresses/${address.id}`, {
             method: 'PUT',
             headers: {
               'Content-Type': 'application/json',
@@ -195,7 +195,7 @@ export default function SalonDetailsTab({ userId, salonId }) {
       for (const link of socialLinks) {
         if (link.id && link.url.trim()) {
           // Update existing social link
-          await fetch(`/api/salons/${salonId}/social-links/${link.id}`, {
+          await fetch(`https://beautysalon-qq6r.vercel.app/api/salons/${salonId}/social-links/${link.id}`, {
             method: 'PUT',
             headers: {
               'Content-Type': 'application/json',

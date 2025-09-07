@@ -39,7 +39,7 @@ export default function ServicesTab({ userId, salonId }) {
   const fetchServices = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`/api/salons/${salonId}/services`, {
+      const response = await fetch(`https://beautysalon-qq6r.vercel.app/api/salons/${salonId}/services`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -111,7 +111,7 @@ export default function ServicesTab({ userId, salonId }) {
         formData.append('image', newService.image);
       }
 
-      const response = await fetch(`/api/salons/${salonId}/services`, {
+      const response = await fetch(`https://beautysalon-qq6r.vercel.app/api/salons/${salonId}/services`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -147,7 +147,7 @@ export default function ServicesTab({ userId, salonId }) {
     setSaving(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`/api/salons/${salonId}/services/${serviceId}`, {
+      const response = await fetch(`https://beautysalon-qq6r.vercel.app/api/salons/${salonId}/services/${serviceId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -185,7 +185,7 @@ export default function ServicesTab({ userId, salonId }) {
       onConfirm: async () => {
         try {
           const token = localStorage.getItem('token');
-          const response = await fetch(`/api/salons/${salonId}/services/${serviceId}`, {
+          const response = await fetch(`https://beautysalon-qq6r.vercel.app/api/salons/${salonId}/services/${serviceId}`, {
             method: 'DELETE',
             headers: {
               'Authorization': `Bearer ${token}`
@@ -231,7 +231,7 @@ export default function ServicesTab({ userId, salonId }) {
     });
 
     try {
-      const response = await fetch(`/api/salons/${salonId}/services`, {
+      const response = await fetch(`https://beautysalon-qq6r.vercel.app/api/salons/${salonId}/services`, {
         method: "POST",
         body: formData,
       });

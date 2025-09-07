@@ -38,7 +38,7 @@ export default function OperatingHoursStep() {
     }
     try {
       const payload = { salon_id: salonId, hours };
-      const res = await fetch(`/api/salons/${salonId}/hours`, {
+      const res = await fetch(`https://beautysalon-qq6r.vercel.app/api/salons/${salonId}/hours`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

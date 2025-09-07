@@ -105,7 +105,7 @@ export default function PortfolioStep() {
       // Send the payload with uploaded image URLs
       const payload = { albums: uploadedAlbums };
       
-      const res = await fetch(`/api/salons/${salonId}/portfolios`, {
+      const res = await fetch(`https://beautysalon-qq6r.vercel.app/api/salons/${salonId}/portfolios`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
