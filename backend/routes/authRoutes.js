@@ -30,11 +30,11 @@ router.post('/upload/profile-image', upload.single('profile_image'), async (req,
       });
 
       // CDN-backed public URL
-      return res.status(201).json({ url: result.url });
+      return res.status(201).json({ imageUrl: result.url });
     }
 
     // Local dev: diskStorage wrote the file to /uploads
-    return res.status(201).json({ url: `/uploads/${req.file.filename}` });
+    return res.status(201).json({ imageUrl: `/uploads/${req.file.filename}` });
   } catch (err) {
     console.error('profile-image upload error', err);
     return res.status(500).json({ error: 'Upload failed' });
