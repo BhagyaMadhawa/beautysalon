@@ -87,7 +87,7 @@ export default function SignupSalonOwner() {
         }
 
         const uploadData = await uploadResponse.json();
-        profileImageUrl = uploadData.imageUrl;
+        profileImageUrl = uploadData.url;
       }
 
       // Now submit registration data with profileImageUrl

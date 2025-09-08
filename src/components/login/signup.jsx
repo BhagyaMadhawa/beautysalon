@@ -78,7 +78,7 @@ export default function SignupPage() {
           }
 
           const uploadData = await uploadResponse.json();
-          profileImageUrl = uploadData.imageUrl;
+          profileImageUrl = uploadData.url;
         } catch (uploadErr) {
           setError("Failed to upload profile image. Please try again.");
           setLoading(false);
