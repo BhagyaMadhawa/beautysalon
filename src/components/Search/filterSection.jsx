@@ -160,8 +160,12 @@ const FilterSection = ({ filters, onFilterChange }) => {
       try {
         // Expect: GET /api/services/categories -> { categories: ["Hair stylist","Lashes",...] }
         const res = await fetch('https://beautysalon-qq6r.vercel.app/api/services/categories');
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
         if (mounted) {
-          const list = Array.isArray(res?.categories) ? res.categories : [];
+          const data = await res.json();
+          const list = Array.isArray(data?.categories) ? data.categories : [];
           setServiceOptions(list);
         }
       } catch (e) {
