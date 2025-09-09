@@ -31,7 +31,7 @@ export default function ProSignup() {
 
     try {
       setLoading(true);
-      await api("/api/pro/register", {
+      await fetch("https://beautysalon-qq6r.vercel.app/api/pro/register", {
         method: "POST",
         body: { first_name, last_name, email, password, country, city, postcode, full_address },
       });

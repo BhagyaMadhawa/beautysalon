@@ -49,7 +49,7 @@ function ListServices() {
 
     try {
       setLoading(true);
-      await api("/api/pro/services", { method: "POST", body: payload });
+      await fetch("https://beautysalon-qq6r.vercel.app/api/pro/services", { method: "POST", body: payload });
       navigate("/regprofe5");
     } catch (err) {
       setError(err.message || "Failed to save step 3");

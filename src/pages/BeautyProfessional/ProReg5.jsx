@@ -34,7 +34,7 @@ function AddFAQStep() {
 
     try {
       setLoading(true);
-      await api("/api/pro/faqs", { method: "POST", body: payload });
+      await fetch("https://beautysalon-qq6r.vercel.app/api/pro/faqs", { method: "POST", body: payload });
       clearSalonId();
 
       // Show success alert

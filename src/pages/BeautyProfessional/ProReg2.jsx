@@ -31,7 +31,7 @@ function PortfolioStep() {
 
     try {
       setLoading(true);
-      await api("/api/pro/portfolio", { method:"POST", body: payload });
+      await fetch("https://beautysalon-qq6r.vercel.app/api/pro/portfolio", { method:"POST", body: payload });
       navigate("/regprofe3");
     } catch (err) {
       setError(err.message || "Failed to save portfolio");

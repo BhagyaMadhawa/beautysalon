@@ -125,7 +125,7 @@ export default function ProReg1() {
           .filter((c) => c.certificate.length > 0),
       };
 
-      const data = await api("/api/pro/profile", { method: "POST", body: payload });
+      const data = await fetch("https://beautysalon-qq6r.vercel.app/api/pro/profile", { method: "POST", body: payload });
       if (data?.salon_id) saveSalonId(data.salon_id);
       navigate("/regprofe2"); // to Portfolio step
     } catch (err) {
