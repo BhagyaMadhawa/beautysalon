@@ -887,7 +887,7 @@ export const getRandomSalons = async (req, res) => {
       LEFT JOIN users u ON s.user_id = u.id
       LEFT JOIN salon_addresses sa ON s.id = sa.salon_id AND sa.status = 1
       LEFT JOIN reviews r ON s.id = r.salon_id AND r.status = 1
-      WHERE s.is_approved = FALSE
+      WHERE s.is_approved = TRUE AND s.status = 1
       GROUP BY s.id, u.id, sa.id
       ORDER BY RANDOM()
       LIMIT $1
