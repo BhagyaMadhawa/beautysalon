@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, Search, X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import FilterSection from './filterSection';
 import ServiceCard from './serviceCard';   // can be reused to show salons
 import { api } from '../../lib/api';
@@ -80,6 +81,7 @@ const SearchResults = () => {
   const [resultCount, setResultCount] = useState(null);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchSalons = async () => {
@@ -192,6 +194,7 @@ const SearchResults = () => {
                     }}
                     onFavorite={handleFavorite}
                     isFavorited={favorites.has(salon.id)}
+                    onClick={() => navigate(`/salon/${salon.id}`)}
                   />
                 ))}
               </AnimatePresence>

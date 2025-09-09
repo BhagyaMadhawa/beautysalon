@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import ImageCarousel from './imageCarousel';
 import { Star, MapPin, Globe } from 'lucide-react';
 
-const ServiceCard = ({ service, onFavorite, isFavorited }) => {
+const ServiceCard = ({ service, onFavorite, isFavorited, onClick }) => {
   // Normalize fields so this works for both salons and services
   const {
     id,
@@ -30,6 +30,7 @@ const ServiceCard = ({ service, onFavorite, isFavorited }) => {
       exit={{ opacity: 0, y: -20 }}
       whileHover={{ y: -4 }}
       className="bg-white rounded-xl shadow-card hover:shadow-card-hover transition-all duration-300 overflow-hidden cursor-pointer"
+      onClick={onClick}
     >
       <ImageCarousel images={images} alt={name} />
 
