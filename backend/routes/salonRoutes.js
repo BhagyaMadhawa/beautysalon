@@ -62,13 +62,38 @@ router.post("/:salonId/faqs", addFaqs);
 router.patch("/admin/:id/approve", authenticateToken, authorizeRoles("admin"), approveSalon);
 
 // New route for profile image upload
-router.post("/upload/profile-image", upload.single("profile_image"), (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ error: "No file uploaded" });
+// router.post("/upload/profile-image", upload.single("profile_image"), (req, res) => {
+//   if (!req.file) {
+//     return res.status(400).json({ error: "No file uploaded" });
+//   }
+//   const imageUrl = `/uploads/${req.file.filename}`;
+//   res.status(201).json({ imageUrl });
+// });
+
+router.post('/upload/profile-image', upload.single('profile_image'), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+
+    // In production (Vercel): upload the in-memory buffer to Blob storage
+    if (process.env.NODE_ENV === 'production') {
+      const safeName = (req.file.originalname || 'profile').replace(/\s+/g, '_');
+      const key = `profiles/${Date.now()}-${safeName}`;
+
+      const result = await put(key, req.file.buffer, {
+        access: 'public',
+        contentType: req.file.mimetype,
+      });
+
+      // CDN-backed public URL
+      return res.status(201).json({ imageUrl: result.url });
+    }
+
+    // Local dev: diskStorage wrote the file to /uploads
+    return res.status(201).json({ imageUrl: `/uploads/${req.file.filename}` });
+  } catch (err) {
+    console.error('profile-image upload error', err);
+    return res.status(500).json({ error: 'Upload failed' });
   }
-  // Assuming server serves static files from backend/uploads
-  const imageUrl = `/uploads/${req.file.filename}`;
-  res.status(201).json({ imageUrl });
 });
 
 // UPDATE ROUTES (Protected - require authentication)
