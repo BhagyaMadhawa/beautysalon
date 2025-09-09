@@ -27,7 +27,7 @@ const SalonCard = ({
       {/* Image container with heart button */}
       <div className="relative w-full h-60 overflow-hidden">
           <img 
-          src={getFullImageUrl(salon.profile_image_url)}
+          src={salon.profile_image_url}
           className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
         />
         

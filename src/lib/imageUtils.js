@@ -25,7 +25,7 @@ export const getFullImageUrl = (imagePath) => {
   // }
 
   // For local development, use API base URL
-  return `${VERCEL_BLOB_BASE}${imagePath}`;
+  return imagePath;
 };
 
 /**
