@@ -36,6 +36,8 @@ import {
   getFilteredSalons
 } from "../controllers/salonController.js";
 import upload from "../middleware/upload.js";
+import { put } from '@vercel/blob';
+
 const router = express.Router();
 
 // GET routes (public)
