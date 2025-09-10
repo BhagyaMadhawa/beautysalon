@@ -1,10 +1,9 @@
 // src/pages/BeautyProfessional/ProReg3.jsx
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Upload, Check } from "lucide-react";
 import { api } from "../../lib/api";
-import { getSalonId } from "../../lib/proRegistration";
 
 const stepLabels = ["01", "02", "03", "04"];
 const durations = ["30 min", "45 min", "60 min", "90 min"];
@@ -19,6 +18,8 @@ function ListServices() {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const { salon_id, userId } = location.state || {};
 
   const handleFieldChange = (i, field, value) =>
     setServices(prev => prev.map((svc, idx) => (idx === i ? { ...svc, [field]: value } : svc)));
@@ -31,7 +32,6 @@ function ListServices() {
 
   const onNext = async () => {
     setError(null);
-    const salon_id = getSalonId();
     if (!salon_id) return setError("Missing salon id. Please complete step 1 again.");
 
     const payload = {
@@ -49,8 +49,17 @@ function ListServices() {
 
     try {
       setLoading(true);
-      await fetch("https://beautysalon-qq6r.vercel.app/api/pro/services", { method: "POST", body: payload });
-      navigate("/regprofe5");
+      const res = await fetch("https://beautysalon-qq6r.vercel.app/api/pro/services", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Failed to save step 3");
+        return;
+      }
+      navigate("/regprofe5", { state: { salon_id, userId } });
     } catch (err) {
       setError(err.message || "Failed to save step 3");
     } finally {

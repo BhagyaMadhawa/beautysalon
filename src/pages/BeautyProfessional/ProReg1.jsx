@@ -3,9 +3,8 @@ import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Upload, Check } from "lucide-react";
 import { FaFacebookF, FaInstagram, FaTiktok } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { api } from "../../lib/api";
-import { saveSalonId } from "../../lib/proRegistration";
 
 const socialOptions = [
   { label: "Facebook", icon: <FaFacebookF className="text-blue-600" />, value: "facebook", placeholder: "https://www.facebook.com/" },
@@ -18,9 +17,12 @@ const stepLabels = ["01", "02", "03", "04", "05"];
 
 export default function ProReg1() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const userId = location.state?.userId || null;
 
-  // Preview-only avatar
-  const [profile, setProfile] = useState(null);
+  // Profile image file for upload
+  const [profileFile, setProfileFile] = useState(null);
+  const [profilePreview, setProfilePreview] = useState(null);
 
   // Professional public profile fields
   const [fullName, setFullName] = useState("");
@@ -55,7 +57,10 @@ export default function ProReg1() {
   // --- handlers ---
   const handleProfileChange = (e) => {
     const file = e.target.files?.[0];
-    if (file) setProfile(URL.createObjectURL(file)); // preview only
+    if (file) {
+      setProfileFile(file);
+      setProfilePreview(URL.createObjectURL(file));
+    }
   };
 
   const handleSocialChange = (idx, field, value) =>
@@ -94,6 +99,14 @@ export default function ProReg1() {
     try {
       setLoading(true);
 
+      const formData = new FormData();
+
+      // Add profile image if selected
+      if (profileFile) {
+        formData.append("profileImage", profileFile);
+      }
+
+      // Add other data as JSON string
       const payload = {
         // maps to salons.* fields
         name: fullName.trim(),
@@ -125,9 +138,20 @@ export default function ProReg1() {
           .filter((c) => c.certificate.length > 0),
       };
 
-      const data = await fetch("https://beautysalon-qq6r.vercel.app/api/pro/profile", { method: "POST", body: payload });
-      if (data?.salon_id) saveSalonId(data.salon_id);
-      navigate("/regprofe2"); // to Portfolio step
+      formData.append("data", JSON.stringify(payload));
+
+      const res = await fetch("https://beautysalon-qq6r.vercel.app/api/pro/profile", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Failed to save details");
+        return;
+      }
+      if (data.salon_id) {
+        navigate("/regprofe2", { state: { salon_id: data.salon_id, userId } });
+      }
     } catch (err) {
       setError(err.message || "Failed to save details");
     } finally {
@@ -194,8 +218,8 @@ export default function ProReg1() {
         variants={fadeInUp}
         custom={2}
       >
-        {profile ? (
-          <img src={profile} alt="Profile" className="w-full h-full object-cover rounded-full" />
+        {profilePreview ? (
+          <img src={profilePreview} alt="Profile" className="w-full h-full object-cover rounded-full" />
         ) : (
           <>
             <Upload className="w-6 h-6 mx-auto text-puce mb-2" />

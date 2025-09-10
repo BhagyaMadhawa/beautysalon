@@ -1,15 +1,16 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Upload, Check } from "lucide-react";
 import { api } from "../../lib/api";
-import { getSalonId } from "../../lib/proRegistration";
 
 const stepLabels = ["01","02","03","04","05"];
 const initialAlbums = [{ album_name: "", images: [] }];
 
 function PortfolioStep() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { salon_id, userId } = location.state || {};
   const [albums, setAlbums] = useState(initialAlbums);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -21,8 +22,7 @@ function PortfolioStep() {
 
   const onNext = async () => {
     setError(null);
-    const salon_id = getSalonId();
-    if (!salon_id) return setError("Missing salon id. Please complete Step 2 again.");
+    if (!salon_id) return setError("Missing salon id. Please complete Step 1 again.");
 
     const payload = {
       salon_id,
@@ -31,8 +31,17 @@ function PortfolioStep() {
 
     try {
       setLoading(true);
-      await fetch("https://beautysalon-qq6r.vercel.app/api/pro/portfolio", { method:"POST", body: payload });
-      navigate("/regprofe3");
+      const res = await fetch("https://beautysalon-qq6r.vercel.app/api/pro/portfolio", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Failed to save portfolio");
+        return;
+      }
+      navigate("/regprofe3", { state: { salon_id, userId } });
     } catch (err) {
       setError(err.message || "Failed to save portfolio");
     } finally {

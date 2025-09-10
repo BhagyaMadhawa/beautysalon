@@ -1,10 +1,9 @@
 // src/pages/BeautyProfessional/ProReg5.jsx
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Check, Menu } from "lucide-react";
 import { api } from "../../lib/api";
-import { getSalonId, clearSalonId } from "../../lib/proRegistration";
 import Alert from "../../components/Alert";
 
 const stepLabels = ["01", "02", "03", "04"];
@@ -16,6 +15,8 @@ function AddFAQStep() {
   const [loading, setLoading] = useState(false);
   const [showSuccessAlert, setShowSuccessAlert] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const { salon_id, userId } = location.state || {};
 
   const handleFAQChange = (idx, field, value) =>
     setFaqs(prev => prev.map((f, i) => (i === idx ? { ...f, [field]: value } : f)));
@@ -24,7 +25,6 @@ function AddFAQStep() {
 
   const onContinue = async () => {
     setError(null);
-    const salon_id = getSalonId();
     if (!salon_id) return setError("Missing salon id. Please complete step 1 again.");
 
     const payload = {
@@ -34,8 +34,16 @@ function AddFAQStep() {
 
     try {
       setLoading(true);
-      await fetch("https://beautysalon-qq6r.vercel.app/api/pro/faqs", { method: "POST", body: payload });
-      clearSalonId();
+      const res = await fetch("https://beautysalon-qq6r.vercel.app/api/pro/faqs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Could not submit FAQs");
+        return;
+      }
 
       // Show success alert
       setShowSuccessAlert(true);

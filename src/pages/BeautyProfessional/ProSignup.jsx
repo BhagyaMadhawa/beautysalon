@@ -31,12 +31,20 @@ export default function ProSignup() {
 
     try {
       setLoading(true);
-      await fetch("https://beautysalon-qq6r.vercel.app/api/pro/register", {
+      const res = await fetch("https://beautysalon-qq6r.vercel.app/api/pro/register", {
         method: "POST",
-        body: { first_name, last_name, email, password, country, city, postcode, full_address },
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ first_name, last_name, email, password, country, city, postcode, full_address }),
       });
-      // cookie set → proceed to Step 2
-      nav("/regprofe1");
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Registration failed");
+        return;
+      }
+      // Store userId
+      localStorage.setItem("pro_user_id", String(data.user.id));
+      // Navigate with state
+      nav("/regprofe1", { state: { userId: data.user.id } });
     } catch (err) {
       setError(err.message || "Registration failed");
     } finally {
