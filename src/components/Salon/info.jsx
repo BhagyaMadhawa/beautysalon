@@ -27,6 +27,7 @@ export default function ProfileInfo({ salonId }) {
       ]);
 
       const salon = salonData.salon || {};
+      console.log(salonData);
       const socialLinks = socialLinksData.socialLinks || [];
       const addresses = addressesData.addresses || [];
       const operatingHours = hoursData.operatingHours || [];
