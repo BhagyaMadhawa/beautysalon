@@ -21,8 +21,8 @@ export default function ProfileInfo({ salonId }) {
         api(`/api/salons/${salonId}/addresses`),
         api(`/api/salons/${salonId}/hours`),
         api(`/api/salons/${salonId}/certifications`),
-        api(`/api/salons/${salonId}/key-info`),
-        api(`/api/salons/${salonId}/languages`)
+        //api(`/api/salons/${salonId}/key-info`),
+        //api(`/api/salons/${salonId}/languages`)
       ]);
       const salon = salonData.salon || {};
       console.log('salon data:', salonData);
