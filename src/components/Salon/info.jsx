@@ -15,7 +15,7 @@ export default function ProfileInfo({ salonId }) {
     try {
       setLoading(true);
       // Fetch multiple data sources in parallel
-      const [salonData, socialLinksData, addressesData, hoursData, certificationsData, keyInfoData, languagesData] = await api([
+      const [salonData, socialLinksData, addressesData, hoursData, certificationsData, keyInfoData, languagesData] = await Promise.all([
         api(`/api/salons/${salonId}`),
         api(`/api/salons/${salonId}/social-links`),
         api(`/api/salons/${salonId}/addresses`),
