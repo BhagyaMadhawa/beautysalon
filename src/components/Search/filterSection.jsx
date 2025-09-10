@@ -162,8 +162,7 @@ const FilterSection = ({ filters, onFilterChange }) => {
         // skipAuth true to avoid sending Authorization header for public endpoint
         const data = await api('/api/services/categories', {
           method: 'GET',
-          headers: { 'Content-Type': 'application/json' },
-          skipAuth: true
+          headers: { 'Content-Type': 'application/json' }
         });
         if (mounted) {
           const list = Array.isArray(data?.categories) ? data.categories : [];
