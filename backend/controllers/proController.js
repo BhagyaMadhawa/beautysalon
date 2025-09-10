@@ -11,7 +11,7 @@ function minutesFromLabel(label) {
 }
 
 async function getOrCreateProSalon(client, user_id, payload) {
-  const { name, email, phone, description } = payload || {};
+  const { name, email, phone, description, profile_image_url } = payload || {};
   const { rows } = await client.query(
     `SELECT id FROM salons WHERE user_id=$1 AND type='beauty_professional' AND status=1 LIMIT 1`,
     [user_id]
@@ -24,17 +24,18 @@ async function getOrCreateProSalon(client, user_id, payload) {
         email = COALESCE($3,email),
         phone = COALESCE($4,phone),
         description = COALESCE($5,description),
+        profile_image_url = COALESCE($6,profile_image_url),
         updated_at = NOW()
        WHERE id=$1`,
-      [id, toStr(name), toStr(email), toStr(phone), toStr(description)]
+      [id, toStr(name), toStr(email), toStr(phone), toStr(description), toStr(profile_image_url)]
     );
     return id;
   }
   const ins = await client.query(
-    `INSERT INTO salons (user_id, name, email, phone, description, type, is_approved, registration_step)
-     VALUES ($1,$2,$3,$4,$5,'beauty_professional', FALSE, 1)
+    `INSERT INTO salons (user_id, name, email, phone, description, profile_image_url, type, is_approved, registration_step)
+     VALUES ($1,$2,$3,$4,$5,$6,'beauty_professional', FALSE, 1)
      RETURNING id`,
-    [user_id, toStr(name), toStr(email), toStr(phone), toStr(description)]
+    [user_id, toStr(name), toStr(email), toStr(phone), toStr(description), toStr(profile_image_url)]
   );
   return ins.rows[0].id;
 }
@@ -103,6 +104,7 @@ export const profileStep = async (req, res) => {
   const user_id = req.user.id;
   const {
     name, email, phone, description,       // profile fields (salons)
+    profile_image_url,                     // profile image URL
     address,                               // {country, city, postcode, full_address}
     socialLinks = [],                      // [{platform,url}]
     certifications = []                    // [{certificate, issuedDate, certificationId, certificationUrl}]
@@ -120,7 +122,7 @@ export const profileStep = async (req, res) => {
       [user_id]
     );
 
-    const salon_id = await getOrCreateProSalon(client, user_id, { name, email, phone, description });
+    const salon_id = await getOrCreateProSalon(client, user_id, { name, email, phone, description, profile_image_url });
 
     // upsert address
     if (address && (address.country || address.city || address.postcode || address.full_address)) {
