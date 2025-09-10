@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Upload, Check } from "lucide-react";
+import { Upload, Check, X } from "lucide-react";
 import { api } from "../../lib/api";
 
 const stepLabels = ["01","02","03","04","05"];
@@ -18,29 +18,104 @@ function PortfolioStep() {
   const handleAlbumNameChange = (i, value) =>
     setAlbums(prev => prev.map((a, idx) => (idx===i ? { ...a, album_name: value } : a)));
   const handleAddAlbum = () => setAlbums(prev => [...prev, { album_name: "", images: [] }]);
-  const handleUploadImages = (_i, _files) => { /* TODO: push uploaded URLs to albums[i].images */ };
+
+  // Function to generate preview URL from File object
+  const getImagePreviewUrl = useCallback((file) => {
+    if (typeof file === 'string') {
+      // If it's already a URL string (for backward compatibility)
+      return file;
+    }
+    return URL.createObjectURL(file);
+  }, []);
+
+  const handleUploadImages = (i, files) => {
+    const fileArray = Array.from(files);
+    setAlbums(prev => {
+      const next = [...prev];
+      next[i].images = [...next[i].images, ...fileArray];
+      return next;
+    });
+  };
+
+  // Function to remove an image from an album
+  const handleRemoveImage = (albumIndex, imageIndex) => {
+    setAlbums(prev => {
+      const next = [...prev];
+      const imageToRemove = next[albumIndex].images[imageIndex];
+
+      // Revoke the object URL if it's a File object
+      if (imageToRemove instanceof File) {
+        URL.revokeObjectURL(getImagePreviewUrl(imageToRemove));
+      }
+
+      next[albumIndex].images = next[albumIndex].images.filter((_, idx) => idx !== imageIndex);
+      return next;
+    });
+  };
 
   const onNext = async () => {
     setError(null);
     if (!salon_id) return setError("Missing salon id. Please complete Step 1 again.");
 
-    const payload = {
-      salon_id,
-      albums: albums.filter(a => a.album_name?.trim()).map(a => ({ album_name: a.album_name.trim(), images: a.images || [] }))
-    };
-
     try {
       setLoading(true);
+
+      // Upload all images first
+      const uploadedAlbums = [];
+
+      for (const album of albums) {
+        if (!album.album_name?.trim()) continue;
+
+        const uploadedImages = [];
+
+        for (const image of album.images) {
+          if (typeof image === 'string') {
+            // Already uploaded image (URL string)
+            uploadedImages.push(image);
+          } else {
+            // File object needs to be uploaded
+            const formData = new FormData();
+            formData.append("profile_image", image);
+
+            const res = await fetch("https://beautysalon-qq6r.vercel.app/api/salons/upload/profile-image", {
+              method: "POST",
+              body: formData,
+            });
+
+            if (res.ok) {
+              const data = await res.json();
+              uploadedImages.push(data.imageUrl);
+            } else {
+              console.error("Failed to upload image:", image.name);
+              // Continue with other images even if one fails
+            }
+          }
+        }
+
+        uploadedAlbums.push({
+          album_name: album.album_name.trim(),
+          images: uploadedImages
+        });
+      }
+
+      // Send the payload with uploaded image URLs
+      const payload = {
+        salon_id,
+        albums: uploadedAlbums
+      };
+
       const res = await fetch("https://beautysalon-qq6r.vercel.app/api/pro/portfolio", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
+
       const data = await res.json();
       if (!res.ok) {
         setError(data.error || "Failed to save portfolio");
         return;
       }
+
       navigate("/regprofe3", { state: { salon_id, userId } });
     } catch (err) {
       setError(err.message || "Failed to save portfolio");

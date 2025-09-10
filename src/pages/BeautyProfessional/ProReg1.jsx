@@ -99,14 +99,30 @@ export default function ProReg1() {
     try {
       setLoading(true);
 
-      const formData = new FormData();
+      let profileImageUrl = null;
 
-      // Add profile image if selected
+      // Upload profile image first if selected
       if (profileFile) {
-        formData.append("profileImage", profileFile);
+        const formData = new FormData();
+        formData.append("profile_image", profileFile);
+
+        const uploadRes = await fetch("https://beautysalon-qq6r.vercel.app/api/salons/upload/profile-image", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (uploadRes.ok) {
+          const uploadData = await uploadRes.json();
+          profileImageUrl = uploadData.imageUrl;
+        } else {
+          const uploadError = await uploadRes.json();
+          setError(uploadError.error || "Failed to upload profile image");
+          setLoading(false);
+          return;
+        }
       }
 
-      // Add other data as JSON string
+      // Now send profile data with uploaded image URL
       const payload = {
         // maps to salons.* fields
         name: fullName.trim(),
@@ -118,6 +134,7 @@ export default function ProReg1() {
         title: title.trim() || null,
         experience: experience.trim() || null,
         languages,
+        profile_image_url: profileImageUrl,
 
         address: {
           country: country || null,
@@ -138,15 +155,15 @@ export default function ProReg1() {
           .filter((c) => c.certificate.length > 0),
       };
 
-      formData.append("data", JSON.stringify(payload));
-
       const res = await fetch("https://beautysalon-qq6r.vercel.app/api/pro/profile", {
         method: "POST",
-        body: formData,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
       if (!res.ok) {
         setError(data.error || "Failed to save details");
+        setLoading(false);
         return;
       }
       if (data.salon_id) {
