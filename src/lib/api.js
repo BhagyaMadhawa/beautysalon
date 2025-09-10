@@ -13,14 +13,14 @@ function joinUrl(path) {
 
 export async function api(
   path,
-  { method = "GET", body, headers = {}, credentials = "include", ...rest } = {}
+  { method = "GET", body, headers = {}, credentials = "include", skipAuth = false, ...rest } = {}
 ) {
   const url = joinUrl(path);
 
   const token = localStorage.getItem("token");
   const finalHeaders = {
     // Don't set Content-Type here; set conditionally below
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...(!skipAuth && token ? { Authorization: `Bearer ${token}` } : {}),
     ...headers,
   };
 
