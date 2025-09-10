@@ -158,14 +158,9 @@ const FilterSection = ({ filters, onFilterChange }) => {
     let mounted = true;
     (async () => {
       try {
-        // Expect: GET /api/services/categories -> { categories: ["Hair stylist","Lashes",...] }
-        // Public endpoint - no auth required
-        const res = await fetch('https://beautysalon-qq6r.vercel.app/api/services/categories');
-        if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}`);
-        }
+        // Use api helper for consistent error handling and auth
+        const data = await api('/api/services/categories');
         if (mounted) {
-          const data = await res.json();
           const list = Array.isArray(data?.categories) ? data.categories : [];
           setServiceOptions(list);
         }
