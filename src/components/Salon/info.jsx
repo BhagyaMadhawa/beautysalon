@@ -25,9 +25,12 @@ export default function ProfileInfo({ salonId }) {
       const salon = salonData.salon || {};
       console.log('salon data:', salonData);
       const socialLinks = socialLinksData.socialLinks || [];
+       console.log('social links:', socialLinks);
       const addresses = addressesData.addresses || [];
       const operatingHours = hoursData.operatingHours || [];
+      console.log('operating hours:', operatingHours);
       const certifications = certificationsData.certifications || [];
+      console.log('certifications:', certifications);
 
       // Use dummy data for key-info and languages
       const keyInfo = {
