@@ -6,8 +6,9 @@ const BASE =
 /** Join base + path, but pass absolute URLs through unchanged */
 function joinUrl(path) {
   if (!path) throw new Error("api(): path is required");
-  if (/^https?:\/\//i.test(path)) return path; // absolute -> as-is
-  const p = path.startsWith("/") ? path : `/${path}`;
+  const pathStr = String(path); // Ensure path is a string
+  if (/^https?:\/\//i.test(pathStr)) return pathStr; // absolute -> as-is
+  const p = pathStr.startsWith("/") ? pathStr : `/${pathStr}`;
   return `${BASE.replace(/\/+$/, "")}${p}`;
 }
 
