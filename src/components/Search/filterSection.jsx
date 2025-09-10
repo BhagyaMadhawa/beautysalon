@@ -160,7 +160,11 @@ const FilterSection = ({ filters, onFilterChange }) => {
       try {
         // Use api helper for consistent error handling and auth
         // skipAuth true to avoid sending Authorization header for public endpoint
-        const data = await api('/api/services/categories', { skipAuth: true });
+        const data = await api('/api/services/categories', {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+          skipAuth: true
+        });
         if (mounted) {
           const list = Array.isArray(data?.categories) ? data.categories : [];
           setServiceOptions(list);
