@@ -109,6 +109,7 @@ export default function ProReg1() {
         const uploadRes = await fetch("https://beautysalon-qq6r.vercel.app/api/salons/upload/profile-image", {
           method: "POST",
           body: formData,
+          credentials: 'include',
         });
 
         if (uploadRes.ok) {
@@ -159,6 +160,7 @@ export default function ProReg1() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
+        credentials: 'include',
       });
       const data = await res.json();
       if (!res.ok) {
