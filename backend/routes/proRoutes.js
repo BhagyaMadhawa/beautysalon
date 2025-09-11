@@ -16,7 +16,7 @@ const router = Router();
 router.post("/register", proRegister);
 
 // Auth required from here
-//router.use(requireAuth);
+router.use(requireAuth);
 router.post("/profile", profileStep);
 router.post("/portfolio", portfolioStep);
 router.post("/services", servicesStep);
