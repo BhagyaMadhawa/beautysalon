@@ -32,10 +32,10 @@ function ListServices() {
 
   const onNext = async () => {
     setError(null);
-    if (!salon_id) return setError("Missing salon id. Please complete step 1 again.");
+    if (!userId) return setError("Missing user id. Please complete step 1 again.");
 
     const payload = {
-      salon_id,
+      userId,
       services: services
         .filter(s => s.serviceName?.trim())
         .map(s => ({
@@ -51,6 +51,7 @@ function ListServices() {
       setLoading(true);
       const res = await fetch("https://beautysalon-qq6r.vercel.app/api/pro/services", {
         method: "POST",
+        credentials: 'include',
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });

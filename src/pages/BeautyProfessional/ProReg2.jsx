@@ -55,7 +55,7 @@ function PortfolioStep() {
 
   const onNext = async () => {
     setError(null);
-    if (!salon_id) return setError("Missing salon id. Please complete Step 1 again.");
+    if (!userId) return setError("Missing user id. Please complete Step 1 again.");
 
     try {
       setLoading(true);
@@ -79,6 +79,7 @@ function PortfolioStep() {
 
             const res = await fetch("https://beautysalon-qq6r.vercel.app/api/salons/upload/profile-image", {
               method: "POST",
+              credentials: 'include',
               body: formData,
             });
 
@@ -100,12 +101,13 @@ function PortfolioStep() {
 
       // Send the payload with uploaded image URLs
       const payload = {
-        salon_id,
+        userId,
         albums: uploadedAlbums
       };
 
       const res = await fetch("https://beautysalon-qq6r.vercel.app/api/pro/portfolio", {
         method: "POST",
+        credentials: 'include',
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });

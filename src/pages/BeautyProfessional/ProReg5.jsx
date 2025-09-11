@@ -25,10 +25,10 @@ function AddFAQStep() {
 
   const onContinue = async () => {
     setError(null);
-    if (!salon_id) return setError("Missing salon id. Please complete step 1 again.");
+    if (!userId) return setError("Missing user id. Please complete step 1 again.");
 
     const payload = {
-      salon_id,
+      userId,
       faqs: faqs.filter(f => f.question?.trim())
     };
 
@@ -36,6 +36,7 @@ function AddFAQStep() {
       setLoading(true);
       const res = await fetch("https://beautysalon-qq6r.vercel.app/api/pro/faqs", {
         method: "POST",
+        credentials: 'include',
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });

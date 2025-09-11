@@ -186,30 +186,47 @@ export const profileStep = async (req, res) => {
 export const portfolioStep = async (req, res) => {
   const user_id = req.body.userId;
   const { salon_id, albums = [] } = req.body || {};
-  if (!salon_id) return res.status(400).json({ error: "salon_id is required" });
 
   const client = await db.getClient();
   try {
     await client.query("BEGIN");
 
-    const { rows: ok } = await client.query(
-      `SELECT id FROM salons WHERE id=$1 AND user_id=$2 AND type='beauty_professional' AND status=1`,
-      [salon_id, user_id]
-    );
-    if (!ok.length) {
-      await client.query("ROLLBACK");
-      return res.status(404).json({ error: "Salon not found" });
+    // For beauty professionals, salon_id may be null, use user_id instead
+    let target_id = salon_id;
+    let is_beauty_pro = false;
+    if (!salon_id) {
+      // Assume beauty professional if no salon_id
+      target_id = user_id;
+      is_beauty_pro = true;
+    } else {
+      // Check if salon exists for salon owners
+      const { rows: ok } = await client.query(
+        `SELECT id FROM salons WHERE id=$1 AND user_id=$2 AND status=1`,
+        [salon_id, user_id]
+      );
+      if (!ok.length) {
+        await client.query("ROLLBACK");
+        return res.status(404).json({ error: "Salon not found" });
+      }
     }
 
-    const { rows: ports } = await client.query(`SELECT id FROM portfolios WHERE salon_id=$1`, [salon_id]);
-    for (const p of ports) await client.query(`DELETE FROM portfolio_images WHERE portfolio_id=$1`, [p.id]);
-    await client.query(`DELETE FROM portfolios WHERE salon_id=$1`, [salon_id]);
+    // Delete existing portfolios
+    if (is_beauty_pro) {
+      const { rows: ports } = await client.query(`SELECT id FROM portfolios WHERE user_id=$1`, [target_id]);
+      for (const p of ports) await client.query(`DELETE FROM portfolio_images WHERE portfolio_id=$1`, [p.id]);
+      await client.query(`DELETE FROM portfolios WHERE user_id=$1`, [target_id]);
+    } else {
+      const { rows: ports } = await client.query(`SELECT id FROM portfolios WHERE salon_id=$1`, [target_id]);
+      for (const p of ports) await client.query(`DELETE FROM portfolio_images WHERE portfolio_id=$1`, [p.id]);
+      await client.query(`DELETE FROM portfolios WHERE salon_id=$1`, [target_id]);
+    }
 
+    // Insert new portfolios
     for (const a of albums) {
       if (!a?.album_name?.trim()) continue;
       const ins = await client.query(
-        `INSERT INTO portfolios (salon_id, album_name) VALUES ($1,$2) RETURNING id`,
-        [salon_id, toStr(a.album_name)]
+        `INSERT INTO portfolios (salon_id, user_id, album_name) VALUES ($1,$2,$3) RETURNING id`,
+        [is_beauty_pro ? null : target_id, is_beauty_pro ? target_id : null, toStr(a.album_name)]
       );
       const pid = ins.rows[0].id;
       for (const url of a.images || []) {
@@ -221,10 +238,18 @@ export const portfolioStep = async (req, res) => {
       }
     }
 
-    await client.query(
-      `UPDATE salons SET registration_step=GREATEST(registration_step,2), updated_at=NOW() WHERE id=$1`,
-      [salon_id]
-    );
+    // Update registration step
+    if (is_beauty_pro) {
+      await client.query(
+        `UPDATE users SET registration_step=GREATEST(registration_step,2), updated_at=NOW() WHERE id=$1`,
+        [user_id]
+      );
+    } else {
+      await client.query(
+        `UPDATE salons SET registration_step=GREATEST(registration_step,2), updated_at=NOW() WHERE id=$1`,
+        [salon_id]
+      );
+    }
 
     await client.query("COMMIT");
     res.json({ message: "Portfolio saved" });
@@ -241,31 +266,47 @@ export const portfolioStep = async (req, res) => {
 export const servicesStep = async (req, res) => {
   const user_id = req.body.userId;
   const { salon_id, services = [] } = req.body || {};
-  if (!salon_id) return res.status(400).json({ error: "salon_id is required" });
 
   const client = await db.getClient();
   try {
     await client.query("BEGIN");
 
-    const { rows: ok } = await client.query(
-      `SELECT id FROM salons WHERE id=$1 AND user_id=$2 AND type='beauty_professional' AND status=1`,
-      [salon_id, user_id]
-    );
-    if (!ok.length) {
-      await client.query("ROLLBACK");
-      return res.status(404).json({ error: "Salon not found" });
+    // For beauty professionals, salon_id may be null, use user_id instead
+    let target_id = salon_id;
+    let is_beauty_pro = false;
+    if (!salon_id) {
+      // Assume beauty professional if no salon_id
+      target_id = user_id;
+      is_beauty_pro = true;
+    } else {
+      // Check if salon exists for salon owners
+      const { rows: ok } = await client.query(
+        `SELECT id FROM salons WHERE id=$1 AND user_id=$2 AND status=1`,
+        [salon_id, user_id]
+      );
+      if (!ok.length) {
+        await client.query("ROLLBACK");
+        return res.status(404).json({ error: "Salon not found" });
+      }
     }
 
-    await client.query(`DELETE FROM services WHERE salon_id=$1`, [salon_id]);
+    // Delete existing services
+    if (is_beauty_pro) {
+      await client.query(`DELETE FROM services WHERE user_id=$1`, [target_id]);
+    } else {
+      await client.query(`DELETE FROM services WHERE salon_id=$1`, [target_id]);
+    }
 
+    // Insert new services
     for (const s of services) {
       if (!s?.serviceName?.trim()) continue;
       const duration = minutesFromLabel(s.durationLabel ?? s.duration) || null;
       await client.query(
-        `INSERT INTO services (salon_id, name, duration, price, discounted_price, description)
-         VALUES ($1,$2,$3,$4,$5,$6)`,
+        `INSERT INTO services (salon_id, user_id, name, duration, price, discounted_price, description)
+         VALUES ($1,$2,$3,$4,$5,$6,$7)`,
         [
-          salon_id,
+          is_beauty_pro ? null : target_id,
+          is_beauty_pro ? target_id : null,
           toStr(s.serviceName),
           duration,
           toMoney(s.price),
@@ -275,10 +316,18 @@ export const servicesStep = async (req, res) => {
       );
     }
 
-    await client.query(
-      `UPDATE salons SET registration_step=GREATEST(registration_step,3), updated_at=NOW() WHERE id=$1`,
-      [salon_id]
-    );
+    // Update registration step
+    if (is_beauty_pro) {
+      await client.query(
+        `UPDATE users SET registration_step=GREATEST(registration_step,3), updated_at=NOW() WHERE id=$1`,
+        [user_id]
+      );
+    } else {
+      await client.query(
+        `UPDATE salons SET registration_step=GREATEST(registration_step,3), updated_at=NOW() WHERE id=$1`,
+        [salon_id]
+      );
+    }
 
     await client.query("COMMIT");
     res.json({ message: "Services saved" });
@@ -295,38 +344,62 @@ export const servicesStep = async (req, res) => {
 export const faqsStep = async (req, res) => {
   const user_id = req.body.userId;
   const { salon_id, faqs = [] } = req.body || {};
-  if (!salon_id) return res.status(400).json({ error: "salon_id is required" });
 
   const client = await db.getClient();
   try {
     await client.query("BEGIN");
 
-    const { rows: ok } = await client.query(
-      `SELECT id FROM salons WHERE id=$1 AND user_id=$2 AND type='beauty_professional' AND status=1`,
-      [salon_id, user_id]
-    );
-    if (!ok.length) {
-      await client.query("ROLLBACK");
-      return res.status(404).json({ error: "Salon not found" });
+    // For beauty professionals, salon_id may be null, use user_id instead
+    let target_id = salon_id;
+    let is_beauty_pro = false;
+    if (!salon_id) {
+      // Assume beauty professional if no salon_id
+      target_id = user_id;
+      is_beauty_pro = true;
+    } else {
+      // Check if salon exists for salon owners
+      const { rows: ok } = await client.query(
+        `SELECT id FROM salons WHERE id=$1 AND user_id=$2 AND status=1`,
+        [salon_id, user_id]
+      );
+      if (!ok.length) {
+        await client.query("ROLLBACK");
+        return res.status(404).json({ error: "Salon not found" });
+      }
     }
 
-    await client.query(`DELETE FROM faqs WHERE salon_id=$1`, [salon_id]);
+    // Delete existing FAQs
+    if (is_beauty_pro) {
+      await client.query(`DELETE FROM faqs WHERE user_id=$1`, [target_id]);
+    } else {
+      await client.query(`DELETE FROM faqs WHERE salon_id=$1`, [target_id]);
+    }
+
+    // Insert new FAQs
     for (const f of faqs) {
       if (!f?.question?.trim()) continue;
       await client.query(
-        `INSERT INTO faqs (salon_id, question, answer) VALUES ($1,$2,$3)`,
-        [salon_id, toStr(f.question), toStr(f.answer)]
+        `INSERT INTO faqs (salon_id, user_id, question, answer) VALUES ($1,$2,$3,$4)`,
+        [is_beauty_pro ? null : target_id, is_beauty_pro ? target_id : null, toStr(f.question), toStr(f.answer)]
       );
     }
 
-    await client.query(
-      `UPDATE salons SET registration_step=GREATEST(registration_step,4), updated_at=NOW() WHERE id=$1`,
-      [salon_id]
-    );
-    await client.query(
-      `UPDATE users SET approval_status='pending', updated_at=NOW() WHERE id=$1`,
-      [user_id]
-    );
+    // Update registration step
+    if (is_beauty_pro) {
+      await client.query(
+        `UPDATE users SET registration_step=GREATEST(registration_step,4), approval_status='pending', updated_at=NOW() WHERE id=$1`,
+        [user_id]
+      );
+    } else {
+      await client.query(
+        `UPDATE salons SET registration_step=GREATEST(registration_step,4), updated_at=NOW() WHERE id=$1`,
+        [salon_id]
+      );
+      await client.query(
+        `UPDATE users SET approval_status='pending', updated_at=NOW() WHERE id=$1`,
+        [user_id]
+      );
+    }
 
     await client.query("COMMIT");
     res.json({ message: "Submitted for approval" });
@@ -359,12 +432,12 @@ export const myProProfile = async (req, res) => {
           SELECT p.id, p.album_name, COALESCE(json_agg(pi.image_url) FILTER (WHERE pi.id IS NOT NULL), '[]') AS images
           FROM portfolios p
           LEFT JOIN portfolio_images pi ON pi.portfolio_id = p.id
-          WHERE p.salon_id = $1
+          WHERE p.salon_id = $1 OR (p.salon_id IS NULL AND p.user_id = $2)
           GROUP BY p.id
           ORDER BY p.id ASC
-        `, [salon.id]),
-        db.query(`SELECT * FROM services WHERE salon_id=$1 AND status=1`, [salon.id]),
-        db.query(`SELECT * FROM faqs WHERE salon_id=$1 AND status=1 ORDER BY id ASC`, [salon.id]),
+        `, [salon.id, user_id]),
+        db.query(`SELECT * FROM services WHERE salon_id=$1 AND status=1 OR (salon_id IS NULL AND user_id=$2 AND status=1)`, [salon.id, user_id]),
+        db.query(`SELECT * FROM faqs WHERE salon_id=$1 AND status=1 OR (salon_id IS NULL AND user_id=$2 AND status=1) ORDER BY id ASC`, [salon.id, user_id]),
       ]);
 
     res.json({
