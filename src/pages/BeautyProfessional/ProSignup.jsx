@@ -35,6 +35,7 @@ export default function ProSignup() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ first_name, last_name, email, password, country, city, postcode, full_address }),
+        credentials: 'include',
       });
       const data = await res.json();
       if (!res.ok) {
