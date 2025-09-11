@@ -99,9 +99,9 @@ export const proRegister = async (req, res) => {
   }
 };
 
-// ---------- STEP 2 (AUTH): profile + address + socials + certifications ----------
+// ---------- STEP 2: profile + address + socials + certifications ----------
 export const profileStep = async (req, res) => {
-  const user_id = req.user.id;
+  const user_id = req.body.userId;
   const {
     name, email, phone, description,       // profile fields (salons)
     profile_image_url,                     // profile image URL
@@ -182,9 +182,9 @@ export const profileStep = async (req, res) => {
   }
 };
 
-// ---------- STEP 3 (AUTH): portfolios + images (replace-all) ----------
+// ---------- STEP 3: portfolios + images (replace-all) ----------
 export const portfolioStep = async (req, res) => {
-  const user_id = req.user.id;
+  const user_id = req.body.userId;
   const { salon_id, albums = [] } = req.body || {};
   if (!salon_id) return res.status(400).json({ error: "salon_id is required" });
 
@@ -237,9 +237,9 @@ export const portfolioStep = async (req, res) => {
   }
 };
 
-// ---------- STEP 4 (AUTH): services (replace-all) ----------
+// ---------- STEP 4: services (replace-all) ----------
 export const servicesStep = async (req, res) => {
-  const user_id = req.user.id;
+  const user_id = req.body.userId;
   const { salon_id, services = [] } = req.body || {};
   if (!salon_id) return res.status(400).json({ error: "salon_id is required" });
 
@@ -291,9 +291,9 @@ export const servicesStep = async (req, res) => {
   }
 };
 
-// ---------- STEP 5 (AUTH): FAQs + submit ----------
+// ---------- STEP 5: FAQs + submit ----------
 export const faqsStep = async (req, res) => {
-  const user_id = req.user.id;
+  const user_id = req.body.userId;
   const { salon_id, faqs = [] } = req.body || {};
   if (!salon_id) return res.status(400).json({ error: "salon_id is required" });
 
@@ -341,7 +341,7 @@ export const faqsStep = async (req, res) => {
 
 // ---------- Helper ----------
 export const myProProfile = async (req, res) => {
-  const user_id = req.user.id;
+  const user_id = req.body.userId;
   try {
     const { rows: salons } = await db.query(
       `SELECT * FROM salons WHERE user_id=$1 AND type='beauty_professional' AND status=1 LIMIT 1`,

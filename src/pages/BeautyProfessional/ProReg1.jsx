@@ -125,6 +125,8 @@ export default function ProReg1() {
 
       // Now send profile data with uploaded image URL
       const payload = {
+        userId: userId, // Add userId to payload
+
         // maps to salons.* fields
         name: fullName.trim(),
         email: publicEmail.trim() || null,
