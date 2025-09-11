@@ -155,9 +155,9 @@ function PortfolioStep() {
               <Upload className="w-8 h-8 mx-auto text-puce mb-2" />
               <span className="font-semibold text-puce">Upload images</span>
               <span className="text-xs text-gray-500 mb-2">Drag &amp; Drop or click below to upload images</span>
-              <label className="text-puce underline font-medium text-sm hover:text-puce1-600 transition cursor-pointer">
+              <label htmlFor={`upload-input-${i}`} className="text-puce underline font-medium text-sm hover:text-puce1-600 transition cursor-pointer">
                 Upload images
-                <input type="file" multiple accept="image/*" className="hidden"
+                <input id={`upload-input-${i}`} type="file" multiple accept="image/*" className="hidden"
                   onChange={(e)=>handleUploadImages(i, Array.from(e.target.files||[]))} />
               </label>
             </div>
@@ -165,8 +165,16 @@ function PortfolioStep() {
             {Array.isArray(album.images) && album.images.length>0 && (
               <div className="flex overflow-x-auto gap-3 py-2">
                 {album.images.map((img, idx) => (
-                  <div key={idx} className="w-20 h-20 md:w-24 md:h-24 rounded-lg overflow-hidden border bg-white">
-                    <img src={img} alt="" className="w-full h-full object-cover"/>
+                  <div key={`${idx}-${img instanceof File ? img.name + img.size : img}`} className="relative w-20 h-20 md:w-24 md:h-24 rounded-lg overflow-hidden border bg-white group flex-shrink-0">
+                    <img src={getImagePreviewUrl(img)} alt={`Portfolio ${idx + 1}`} className="w-full h-full object-cover"/>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveImage(i, idx)}
+                      className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-red-600"
+                      aria-label="Remove image"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
                   </div>
                 ))}
               </div>
