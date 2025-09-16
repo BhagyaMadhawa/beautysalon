@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { Upload, Check, X } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -9,26 +9,60 @@ const stepLabels = ["01", "02", "03", "04", "05", "06"];
 export default function PortfolioStep() {
   const [albums, setAlbums] = useState(initialAlbums);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [dragOverAlbumIdx, setDragOverAlbumIdx] = useState(null); // NEW: per-album drag highlight
+  const [dragOverAlbumIdx, setDragOverAlbumIdx] = useState(null);
+  const dragDepth = useRef({}); // per-album depth counter
+
   const navigate = useNavigate();
   const location = useLocation();
   const salonId = location.state?.salonId || null;
   const userId = location.state?.userId || null;
+
+  // Prevent the browser from navigating on drop outside the zone
+  useEffect(() => {
+    const cancel = (e) => { e.preventDefault(); e.stopPropagation(); };
+    window.addEventListener("dragover", cancel);
+    window.addEventListener("drop", cancel);
+    return () => {
+      window.removeEventListener("dragover", cancel);
+      window.removeEventListener("drop", cancel);
+    };
+  }, []);
 
   const handleAlbumNameChange = (i, value) => {
     setAlbums(prev => prev.map((a, idx) => (idx === i ? { ...a, name: value } : a)));
   };
   const handleAddAlbum = () => setAlbums(prev => [...prev, { name: "", images: [] }]);
 
-  // Keep only image files
-  const extractImageFiles = (fileListLike) => {
-    const arr = Array.from(fileListLike || []);
-    return arr.filter(f => typeof f?.type === "string" && f.type.startsWith("image/"));
+  // Extract image files from FileList or DataTransfer (handles .files and .items)
+  const extractImageFiles = (input) => {
+    // 1) FileList (from <input> or native desktop drop)
+    if (input && typeof input.length === "number" && input.item) {
+      return Array.from(input).filter(f => f?.type?.startsWith?.("image/"));
+    }
+    // 2) DataTransfer.files
+    if (input?.files?.length) {
+      return Array.from(input.files).filter(f => f?.type?.startsWith?.("image/"));
+    }
+    // 3) DataTransfer.items (drag from some apps/sites)
+    if (input?.items?.length) {
+      const out = [];
+      for (const item of input.items) {
+        if (item.kind === "file") {
+          const file = item.getAsFile();
+          if (file && file.type.startsWith("image/")) out.push(file);
+        }
+      }
+      return out;
+    }
+    return [];
   };
 
-  const handleUploadImages = (i, files) => {
-    const fileArray = extractImageFiles(files);
-    if (!fileArray.length) return;
+  const handleUploadImages = (i, filesLike) => {
+    const fileArray = extractImageFiles(filesLike);
+    if (!fileArray.length) {
+      console.warn("No image files detected in drop.");
+      return;
+    }
     setAlbums(prev => {
       const next = [...prev];
       next[i].images = [...next[i].images, ...fileArray];
@@ -47,7 +81,6 @@ export default function PortfolioStep() {
       const next = [...prev];
       const imageToRemove = next[albumIndex].images[imageIndex];
       if (imageToRemove instanceof File) {
-        // Revoke object URL created during preview
         URL.revokeObjectURL(getImagePreviewUrl(imageToRemove));
       }
       next[albumIndex].images = next[albumIndex].images.filter((_, idx) => idx !== imageIndex);
@@ -55,24 +88,27 @@ export default function PortfolioStep() {
     });
   };
 
-  // ---- Drag & Drop handlers (per album) ----
+  // ---- Drag & Drop (per album) with depth counters ----
   const onDragEnter = (e, i) => {
     e.preventDefault(); e.stopPropagation();
+    dragDepth.current[i] = (dragDepth.current[i] || 0) + 1;
     setDragOverAlbumIdx(i);
   };
   const onDragOver = (e, i) => {
     e.preventDefault(); e.stopPropagation();
+    if (e.dataTransfer) e.dataTransfer.dropEffect = "copy";
     if (dragOverAlbumIdx !== i) setDragOverAlbumIdx(i);
   };
   const onDragLeave = (e, i) => {
     e.preventDefault(); e.stopPropagation();
-    setDragOverAlbumIdx(curr => (curr === i ? null : curr));
+    dragDepth.current[i] = Math.max(0, (dragDepth.current[i] || 1) - 1);
+    if (dragDepth.current[i] === 0) setDragOverAlbumIdx(curr => (curr === i ? null : curr));
   };
   const onDrop = (e, i) => {
     e.preventDefault(); e.stopPropagation();
+    dragDepth.current[i] = 0;
     setDragOverAlbumIdx(null);
-    const files = e.dataTransfer?.files?.length ? e.dataTransfer.files : [];
-    handleUploadImages(i, files);
+    handleUploadImages(i, e.dataTransfer || e.nativeEvent?.dataTransfer || e.target);
   };
 
   const handleSubmit = async (e) => {
@@ -212,7 +248,7 @@ export default function PortfolioStep() {
                   id={`upload-input-${i}`}
                   onChange={e => {
                     const files = e.target.files;
-                    e.target.value = ""; // allow reselecting the same files
+                    e.target.value = ""; // allow re-selecting same files
                     handleUploadImages(i, files);
                   }}
                 />
@@ -252,7 +288,7 @@ export default function PortfolioStep() {
               )}
             </div>
           );
-        ))}
+        })}
 
         <div className="w-full max-w-[98vw] sm:max-w-[90vw] md:max-w-3xl flex justify-start mb-8">
           <button
