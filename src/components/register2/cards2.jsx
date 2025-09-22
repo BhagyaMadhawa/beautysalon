@@ -50,7 +50,7 @@ const UserTypeSelection2 = () => {
     },
     {
       id: "individual",
-      title: "I'm a service Beauty Professional",
+      title: "I'm a Beauty Professional",
       icon: Briefcase,
       description: "I'm a service Beauty Professional",
     },

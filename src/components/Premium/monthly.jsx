@@ -29,7 +29,7 @@ export default function MonthlyPricingCard() {
   animate={{ opacity: 1, y: 0 }}
   whileHover={{ scale: 1.03 }}
   whileTap={{ scale: 1 }}
-  onTap={() => navigate('/register2')}
+  onTap={() => navigate('/register21')}
   
   transition={{
     hover: { duration: 0.4, ease: "easeInOut" },

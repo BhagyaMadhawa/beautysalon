@@ -184,7 +184,7 @@ const UserTypeSelection = () => {
               if (selectedType === "client") {
                 navigate("/signup");
               } else {
-                navigate("/register21");
+                navigate("/register");
               }
             }}
           >

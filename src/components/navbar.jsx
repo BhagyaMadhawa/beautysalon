@@ -129,7 +129,7 @@ const NavBar = () => {
               ) : (
                 <div className="flex items-center ml-4">
                   <a href="/login" className="mr-4 text-gray-600 hover:text-gray-900 transition-colors">Log in</a>
-                  <a href="/register" className="bg-puce text-white px-5 py-2 rounded-lg hover:bg-rose-taupe transition-colors">Sign up</a>
+                  <a href="/register2" className="bg-puce text-white px-5 py-2 rounded-lg hover:bg-rose-taupe transition-colors">Sign up</a>
                 </div>
               )}
             </div>
