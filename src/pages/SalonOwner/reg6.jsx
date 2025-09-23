@@ -2,24 +2,19 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Check, Menu } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
-import Alert from "../../components/Alert";
 
 const stepLabels = ["01", "02", "03", "04", "05", "06"];
-
 const initialFAQ = { question: "", answer: "" };
 
 export default function AddFAQStep() {
   const [faqs, setFaqs] = useState([{ ...initialFAQ }, { ...initialFAQ }]);
-  const [showSuccessAlert, setShowSuccessAlert] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const salonId = location.state?.salonId || null;
   const userId = location.state?.userId || null;
 
-  const handleFAQChange = (idx, field, value) => {
+  const handleFAQChange = (idx, field, value) =>
     setFaqs(prev => prev.map((f, i) => (i === idx ? { ...f, [field]: value } : f)));
-  };
-  const handleAddFAQ = () => setFaqs(prev => [...prev, { ...initialFAQ }]);
   const handleRemoveFAQ = (idx) => {
     if (faqs.length > 1) setFaqs(prev => prev.filter((_, i) => i !== idx));
   };
@@ -31,7 +26,6 @@ export default function AddFAQStep() {
       return;
     }
     try {
-      // Save FAQs
       const res = await fetch(`https://beautysalon-qq6r.vercel.app/api/salons/${salonId}/faqs`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -47,13 +41,16 @@ export default function AddFAQStep() {
         return;
       }
 
-      // Show success alert
-      setShowSuccessAlert(true);
-
-      // Navigate to dashboard after a short delay to show the alert
-      setTimeout(() => {
-        navigate("/dashboard", { state: { salonId, userId } });
-      }, 2000);
+      // Prepare flash for next route (Login)
+      const flash = {
+        type: "success",
+        title: "Registration Complete!",
+        message:
+          "Your profile has been successfully submitted for review. You will be able to log in once it is approved.",
+        duration: 6000,
+      };
+      sessionStorage.setItem("flash", JSON.stringify(flash));
+      navigate("/login", { state: { flash } });
     } catch {
       alert("An error occurred. Please try again.");
     }
@@ -66,19 +63,6 @@ export default function AddFAQStep() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      {/* Success Alert */}
-      {showSuccessAlert && (
-        <div className="w-full max-w-md mb-4">
-          <Alert
-            type="success"
-            title="Registration Complete!"
-            message="Your salon profile has been successfully submitted for approval. You will be redirected to your dashboard shortly."
-            duration={2000}
-            onClose={() => setShowSuccessAlert(false)}
-          />
-        </div>
-      )}
-
       <h1 className="text-2xl sm:text-3xl font-bold text-center text-black mb-8">
         Add Frequently Asked Question
       </h1>
