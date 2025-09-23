@@ -78,7 +78,7 @@ export default function LoginPage() {
               type={flash.type || "success"}
               title={flash.title || "Success"}
               message={flash.message || ""}
-              duration={flash.duration ?? 6000}
+              duration={flash.duration ?? 20000}
               onClose={dismissFlash}
             />
           </div>
