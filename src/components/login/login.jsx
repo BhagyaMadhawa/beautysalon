@@ -1,10 +1,10 @@
-// src/components/login/login.jsx
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Eye, EyeOff, Mail } from "lucide-react";
 import { FaApple } from "react-icons/fa";
 import { motion } from "framer-motion";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
+import Alert from "../Alert";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -13,10 +13,31 @@ export default function LoginPage() {
   const [remember, setRemember] = useState(false);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  // Flash support (shown when redirected here after registration)
+  const location = useLocation();
+  const [flash, setFlash] = useState(() => {
+    // Prefer navigation state; fall back to sessionStorage (survives reload)
+    if (location.state?.flash) return location.state.flash;
+    try {
+      const saved = sessionStorage.getItem("flash");
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+  useEffect(() => {
+    if (location.state?.flash) {
+      sessionStorage.setItem("flash", JSON.stringify(location.state.flash));
+    }
+  }, [location.state?.flash]);
+  const dismissFlash = () => {
+    setFlash(null);
+    sessionStorage.removeItem("flash");
+  };
+
   const navigate = useNavigate();
-
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
   const { login: authLogin } = useAuth();
 
   const handleSubmit = async (e) => {
@@ -30,7 +51,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await authLogin(email, password);
-      // The AuthContext login function will handle the page refresh and navigation
+      // AuthContext handles navigation after successful login
     } catch (err) {
       const msg = String(err.message || "");
       if (/awaiting approval/i.test(msg)) setError(msg);
@@ -49,6 +70,21 @@ export default function LoginPage() {
       exit={{ opacity: 0, y: -20 }}
       transition={{ duration: 0.5 }}
     >
+      {/* Flash toast pinned at top (no design changes to your layout) */}
+      {flash && (
+        <div className="w-full flex justify-center pt-4">
+          <div className="w-full sm:max-w-md md:max-w-[45%]">
+            <Alert
+              type={flash.type || "success"}
+              title={flash.title || "Success"}
+              message={flash.message || ""}
+              duration={flash.duration ?? 20000}
+              onClose={dismissFlash}
+            />
+          </div>
+        </div>
+      )}
+
       {/* Top-right link */}
       <div className="w-full flex justify-end p-4">
         <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
