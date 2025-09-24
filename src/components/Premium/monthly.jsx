@@ -27,7 +27,11 @@ export default function MonthlyPricingCard() {
   style={{ height: "550px", transformOrigin: 'center' }}
   initial={{ opacity: 0, y: 20 }}
   animate={{ opacity: 1, y: 0 }}
-  whileHover={{ scale: 1.03 }}
+  whileHover={{
+    scale: 1.03,
+    borderColor: '#B88989',
+    backgroundColor: '#F0E6E6'
+  }}
   whileTap={{ scale: 1 }}
   onTap={() => navigate('/register21')}
   
@@ -76,8 +80,9 @@ export default function MonthlyPricingCard() {
       )}
       {/* Button */}
       <button
-        className="w-full py-2 rounded-lg font-medium text-base border border-gray-500 bg-white text-gray-900 hover:bg-gray-50 transition"
+        className="w-full py-2 rounded-lg font-medium text-base border border-gray-500 bg-white text-gray-900 hover:bg-puce hover:text-white transition"
         type="button"
+        onClick={() => navigate('/register21')}
       >
         Start for free
       </button>

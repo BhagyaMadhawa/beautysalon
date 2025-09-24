@@ -23,11 +23,15 @@ export default function AnnuallyPricingCard() {
 
   return (
     <motion.div
-      className="w-full mx-auto my-16 rounded-2xl border-2 border-puce bg-puce1-100 shadow-sm p-6 flex flex-col relative"
+      className="w-full mx-auto my-16 rounded-2xl border border-gray-500 bg-white shadow-sm p-6 flex flex-col relative"
       style={{ height: "550px", transformOrigin: 'center' }}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      whileHover={{ scale: 1.05 }}
+      whileHover={{
+        scale: 1.05,
+        borderColor: '#B88989',
+        backgroundColor: '#F0E6E6'
+      }}
       onClick={() => navigate('/register21')}
       whileTap={{ scale: 0.97 }}
       transition={{
@@ -81,11 +85,11 @@ export default function AnnuallyPricingCard() {
       )}
       {/* Button */}
       <button
-        className="w-full py-2 rounded-lg font-medium text-base bg-puce text-white border-2 border-puce shadow-sm cursor-default"
-        disabled
+        className="w-full py-2 rounded-lg font-medium text-base border border-gray-500 bg-white text-gray-900 hover:bg-puce hover:text-white transition"
         type="button"
+        onClick={() => navigate('/register21')}
       >
-        Plan Selected
+        Start for free
       </button>
     </motion.div>
   );
