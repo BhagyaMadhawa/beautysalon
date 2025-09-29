@@ -792,7 +792,18 @@ export const getCertifications = async (req, res) => {
       [salonId]
     );
 
-    res.json({ certifications: rows });
+   // Transform the data to match frontend expectations
+     const transformedCertifications = rows.map(cert => ({
+       id: cert.id,
+        title: cert.certificate_name,
+        description: cert.certificate_id ? `Certificate ID: ${cert.certificate_id}` : 'Professional certification',
+        issue_date: cert.issue_date,
+        certificate_url: cert.certificate_url,
+        created_at: cert.created_at
+    }));
+
+    res.json({ certifications: transformedCertifications });
+  
   } catch (err) {
     console.error("Error fetching certifications:", err);
     res.status(500).json({ error: err.message });
