@@ -224,7 +224,7 @@ export const deleteUser = async (req, res) => {
     await client.query('BEGIN');
 
     await client.query(
-      'UPDATE users SET status = $1, updated_at = NOW() WHERE id = $2',
+      'UPDATE users SET email = CONCAT(email, \'_deleted\'), status = $1, updated_at = NOW() WHERE id = $2',
       [2, id]
     );
 
