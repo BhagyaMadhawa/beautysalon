@@ -1,8 +1,19 @@
 import React, { useEffect, useState } from "react";
 import { api } from "../lib/api";
+import { useAuth } from '../contexts/AuthContext'
 
 export default function Sidebar({ onTabSelect, salonId }) {
   const [userRole, setUserRole] = useState(null);
+  const { user, logout, loading } = useAuth()
+
+   const handleLogout = async () => {
+    try {
+      await logout()
+      // The logout function in AuthContext will handle the page refresh
+    } catch (error) {
+      console.error('Logout failed:', error)
+    }
+  }
 
   useEffect(() => {
     // Fetch user role to determine which menu items to show
@@ -69,14 +80,7 @@ export default function Sidebar({ onTabSelect, salonId }) {
 
           <button
             className="flex items-center gap-3 w-full px-3 py-2 rounded-md text-gray-700 hover:bg-puce1-200 focus:outline-none focus:ring-2 focus:ring-puce"
-            onClick={async () => {
-              try {
-                await api('/api/auth/logout', { method: 'POST' });
-                window.location.href = '/';
-              } catch (error) {
-                console.error('Logout failed:', error);
-              }
-            }}
+            onClick={handleLogout}
           >
             <svg
               className="w-5 h-5"
@@ -151,17 +155,10 @@ export default function Sidebar({ onTabSelect, salonId }) {
             Messages
           </button>
 
-          <button
-            className="flex items-center gap-3 w-full px-3 py-2 rounded-md text-gray-700 hover:bg-puce1-200 focus:outline-none focus:ring-2 focus:ring-puce"
-            onClick={async () => {
-              try {
-                await api('/api/auth/logout', { method: 'POST' });
-                window.location.href = '/';
-              } catch (error) {
-                console.error('Logout failed:', error);
-              }
-            }}
-          >
+        <button
+          className="flex items-center gap-3 w-full px-3 py-2 rounded-md text-gray-700 hover:bg-puce1-200 focus:outline-none focus:ring-2 focus:ring-puce"
+          onClick={handleLogout}
+        >
             <svg
               className="w-5 h-5"
               fill="none"
@@ -277,14 +274,7 @@ export default function Sidebar({ onTabSelect, salonId }) {
 
         <button
           className="flex items-center gap-3 w-full px-3 py-2 rounded-md text-gray-700 hover:bg-puce1-200 focus:outline-none focus:ring-2 focus:ring-puce"
-          onClick={async () => {
-            try {
-              await api('/api/auth/logout', { method: 'POST' });
-              window.location.href = '/';
-            } catch (error) {
-              console.error('Logout failed:', error);
-            }
-          }}
+          onClick={handleLogout}
         >
           <svg
             className="w-5 h-5"
