@@ -30,11 +30,11 @@ import {
   updatePortfolio,
   addPortfolioImages,
   deletePortfolioImage,
-  deletePortfolio,
   updateFaq,
   deleteFaq,
-  getFilteredSalons
-} from "../controllers/salonController.js";
+  updateKeyInfo,
+  updateLanguages,
+  getFilteredSalons} from "../controllers/salonController.js";
 import upload from "../middleware/upload.js";
 import { put } from '@vercel/blob';
 
@@ -111,4 +111,6 @@ router.delete("/:salonId/portfolios/:portfolioId", authenticateToken, deletePort
 router.put("/:salonId/faqs/:faqId", authenticateToken, updateFaq); // Update FAQ
 router.delete("/:salonId/faqs/:faqId", authenticateToken, deleteFaq); // Delete FAQ
 
+router.put("/:salonId/key-info", authenticateToken, updateKeyInfo); // Update key information
+router.put("/:salonId/languages", authenticateToken, updateLanguages); // Update languages
 export default router;

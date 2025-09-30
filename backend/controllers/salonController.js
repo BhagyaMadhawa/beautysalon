@@ -1275,3 +1275,86 @@ export const getFilteredSalons = async (req, res) => {
 };
 
 
+// Update key information for a salon
+export const updateKeyInfo = async (req, res) => {
+  const { salonId } = req.params;
+  const { joined_on, stylist_career, good_image } = req.body;
+
+  try {
+    // Verify salon ownership
+    const ownershipCheck = await db.query(
+      'SELECT s.id FROM salons s WHERE s.id = $1 AND s.user_id = $2 AND s.status = 1',
+      [salonId, req.user.id]
+    );
+
+    if (ownershipCheck.rows.length === 0) {
+      return res.status(403).json({ error: 'Unauthorized - You do not own this salon' });
+    }
+
+    // Check if key info record exists
+    const existing = await db.query(
+      'SELECT id FROM salon_key_info WHERE salon_id = $1 AND status = 1',
+      [salonId]
+    );
+
+    if (existing.rows.length > 0) {
+      // Update existing record
+      await db.query(
+        `UPDATE salon_key_info
+         SET joined_on = $1, stylist_career = $2, good_image = $3, updated_at = CURRENT_TIMESTAMP
+         WHERE salon_id = $4 AND status = 1`,
+        [joined_on, stylist_career, good_image, salonId]
+      );
+    } else {
+      // Insert new record
+      await db.query(
+        `INSERT INTO salon_key_info (salon_id, joined_on, stylist_career, good_image)
+         VALUES ($1, $2, $3, $4)`,
+        [salonId, joined_on, stylist_career, good_image]
+      );
+    }
+
+    res.json({ message: 'Key information updated successfully' });
+  } catch (err) {
+    console.error("Error updating key information:", err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// Update languages for a salon
+export const updateLanguages = async (req, res) => {
+  const { salonId } = req.params;
+  const { languages } = req.body; // Array of language strings
+
+  try {
+    // Verify salon ownership
+    const ownershipCheck = await db.query(
+      'SELECT s.id FROM salons s WHERE s.id = $1 AND s.user_id = $2 AND s.status = 1',
+      [salonId, req.user.id]
+    );
+
+    if (ownershipCheck.rows.length === 0) {
+      return res.status(403).json({ error: 'Unauthorized - You do not own this salon' });
+    }
+
+    // Soft delete existing languages
+    await db.query(
+      'UPDATE salon_languages SET status = 0, updated_at = CURRENT_TIMESTAMP WHERE salon_id = $1',
+      [salonId]
+    );
+
+    // Insert new languages
+    for (const language of languages) {
+      await db.query(
+        `INSERT INTO salon_languages (salon_id, language)
+         VALUES ($1, $2)`,
+        [salonId, language]
+      );
+    }
+
+    res.json({ message: 'Languages updated successfully' });
+  } catch (err) {
+    console.error("Error updating languages:", err);
+    res.status(500).json({ error: err.message });
+  }
+};

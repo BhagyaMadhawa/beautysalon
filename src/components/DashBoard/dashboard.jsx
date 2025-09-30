@@ -167,4 +167,3 @@ const DashBoard = ({ userId, salonId }) => {
 };
 
 export default DashBoard;
-

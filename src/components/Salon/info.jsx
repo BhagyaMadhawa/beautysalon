@@ -15,12 +15,14 @@ export default function ProfileInfo({ salonId }) {
     try {
       setLoading(true);
       // Fetch multiple data sources in parallel
-      const [salonData, socialLinksData, addressesData, hoursData, certificationsData] = await Promise.all([
+      const [salonData, socialLinksData, addressesData, hoursData, certificationsData, keyInfoData, languagesData] = await Promise.all([
         api(`/api/salons/${salonId}`),
         api(`/api/salons/${salonId}/social-links`),
         api(`/api/salons/${salonId}/addresses`),
         api(`/api/salons/${salonId}/hours`),
-        api(`/api/salons/${salonId}/certifications`)
+        api(`/api/salons/${salonId}/certifications`),
+        api(`/api/salons/${salonId}/key-info`),
+        api(`/api/salons/${salonId}/languages`)
       ]);
       const salon = salonData.salon || {};
       console.log('salon data:', salonData);
@@ -32,13 +34,8 @@ export default function ProfileInfo({ salonId }) {
       const certifications = certificationsData.certifications || [];
       console.log('certifications:', certifications);
 
-      // Use dummy data for key-info and languages
-      const keyInfo = {
-        joined_on: "May 2006",
-        stylist_career: "5 years",
-        good_image: "Popular and loved"
-      };
-      const languages = ["English", "Korean"];
+      const keyInfo = keyInfoData.keyInfo || {};
+      const languages = languagesData.languages.map(lang => lang.language) || [];
 
       setProfileData({
         certifications: certifications,

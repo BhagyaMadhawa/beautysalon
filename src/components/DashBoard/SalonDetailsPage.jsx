@@ -3,6 +3,7 @@ import SalonDetailsTab from "./SalonDetailsTab";
 import ManagePortfolioTab from "./ManagePortfolioTab";
 import ServicesTab from "./ServicesTab";
 import FaqsTab from "./FaqsTab";
+import SalonInfoEditor from "./SalonInfoEditor";
 
 const SalonDetailsPage = ({ userId, salonId }) => {
   const [activeSubTab, setActiveSubTab] = useState("details");
@@ -17,6 +18,8 @@ const SalonDetailsPage = ({ userId, salonId }) => {
         return <ServicesTab userId={userId} salonId={salonId} />;
       case "faqs":
         return <FaqsTab userId={userId} salonId={salonId} />;
+      case "editInfo":
+        return <SalonInfoEditor userId={userId} salonId={salonId} />;
       default:
         return <SalonDetailsTab userId={userId} salonId={salonId} />;
     }
@@ -68,6 +71,16 @@ const SalonDetailsPage = ({ userId, salonId }) => {
             }`}
           >
             FAQs
+          </button>
+          <button
+            onClick={() => setActiveSubTab("editInfo")}
+            className={`px-4 py-2 rounded-md text-sm font-medium ${
+              activeSubTab === "editInfo"
+                ? "bg-puce text-white"
+                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+            }`}
+          >
+            Edit Info
           </button>
         </div>
 
