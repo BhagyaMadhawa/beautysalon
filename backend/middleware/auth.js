@@ -1,4 +1,4 @@
-// ESM auth middleware
+// middleware/auth.js
 import jwt from "jsonwebtoken";
 
 export function requireAuth(req, res, next) {
@@ -8,7 +8,7 @@ export function requireAuth(req, res, next) {
     if (!token) return res.status(401).json({ message: "Access token missing" });
 
     const payload = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = payload; // { id, role }
+    req.user = payload;
     next();
   } catch {
     res.status(403).json({ message: "Invalid or expired token" });
@@ -17,12 +17,15 @@ export function requireAuth(req, res, next) {
 
 export const authenticateToken = (req, res, next) => {
   try {
+    // ✅ Allow CORS preflight requests
+    if (req.method === "OPTIONS") return next();
+
     const bearer = req.headers.authorization?.split(" ")[1];
     const token = req.cookies?.token || bearer;
     if (!token) return res.status(401).json({ error: "Access token missing" });
 
     const payload = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = payload; // { id, role }
+    req.user = payload;
     next();
   } catch {
     res.status(403).json({ error: "Invalid or expired token" });
