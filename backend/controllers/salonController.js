@@ -289,6 +289,7 @@ export const getSalon = async (req, res) => {
       average_rating: parseFloat(salon.average_rating) || 0,
       total_reviews: parseInt(salon.total_reviews) || 0,
       location: salon.full_address ? `${salon.city}, ${salon.country}` : 'Location not specified',
+      user_id: salon.user_id,
       owner: {
         first_name: salon.first_name,
         last_name: salon.last_name,

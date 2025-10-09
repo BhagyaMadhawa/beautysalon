@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '../../lib/api';
 import { getFullImageUrl } from '../../lib/imageUtils';
 import { Upload } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
 
 const imageVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -11,19 +12,33 @@ const imageVariants = {
 };
 
 const PortfolioGallery = ({ salonId }) => {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState(0);
   const [visibleCount, setVisibleCount] = useState(6);
   const [portfolios, setPortfolios] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [salon, setSalon] = useState(null);
+  const [isOwner, setIsOwner] = useState(false);
 
   // drag-n-drop related
   const [dragActive, setDragActive] = useState(false);
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
+    fetchSalonData();
     fetchPortfolios();
-  }, [salonId]);
+  }, [salonId, user]);
+
+  const fetchSalonData = async () => {
+    try {
+      const data = await api(`/api/salons/${salonId}`);
+      setSalon(data.salon);
+      setIsOwner(user && data.salon.user_id === user.id);
+    } catch (err) {
+      console.error('Error fetching salon data:', err);
+    }
+  };
 
   const fetchPortfolios = async () => {
     try {
@@ -200,10 +215,10 @@ const PortfolioGallery = ({ salonId }) => {
         </div>
       )}
 
-      {/* Drop Zone (targets current tab) */}
-      {tabs.length > 0 && (
+      {/* Drop Zone (targets current tab) - Only show for salon owners */}
+      {tabs.length > 0 && isOwner && (
         <div
-          className={`mb-4 rounded-xl border-2 border-dashed p-4 sm:p-6 text-center transition 
+          className={`mb-4 rounded-xl border-2 border-dashed p-4 sm:p-6 text-center transition
             ${dragActive ? 'border-puce bg-puce/20' : 'border-puce bg-puce/10 hover:bg-puce/20'}
             ${uploading ? 'opacity-75 cursor-progress' : ''}
           `}
@@ -223,10 +238,10 @@ const PortfolioGallery = ({ salonId }) => {
           <div className="flex flex-col items-center justify-center">
             <Upload className="w-8 h-8 mb-2 text-puce" />
             <p className="font-semibold text-puce">
-              {uploading ? 'Uploading...' : `Add images to “${tabs[activeTab]}”`}
+              {uploading ? 'Uploading...' : `Add images to "${tabs[activeTab]}"`}
             </p>
             <p className="text-xs text-gray-500 mb-2">
-              Drag &amp; drop images here, or click below to select
+              Drag & drop images here, or click below to select
             </p>
             <input
               id="portfolio-upload-input"
