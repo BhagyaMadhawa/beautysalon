@@ -297,13 +297,42 @@ export const servicesStep = async (req, res) => {
       await client.query(`DELETE FROM services WHERE salon_id=$1`, [target_id]);
     }
 
+    // Handle image uploads
+    const imageUrls = {};
+    if (req.files && req.files.length > 0) {
+      for (const file of req.files) {
+        const match = file.fieldname.match(/services\[(\d+)\]\[image\]/);
+        if (match) {
+          const index = match[1];
+          // Upload image
+          let imageUrl;
+          if (process.env.NODE_ENV === "production") {
+            const { put } = await import("@vercel/blob");
+            const safeName = (file.originalname || "service").replace(/\s+/g, "_");
+            const key = `services/${Date.now()}-${safeName}`;
+            const result = await put(key, file.buffer, {
+              access: "public",
+              contentType: file.mimetype,
+            });
+            imageUrl = result.url;
+          } else {
+            imageUrl = `/uploads/${file.filename}`;
+          }
+          imageUrls[index] = imageUrl;
+        }
+      }
+    }
+
     // Insert new services
-    for (const s of services) {
+    for (let i = 0; i < services.length; i++) {
+      const s = services[i];
       if (!s?.serviceName?.trim()) continue;
       const duration = minutesFromLabel(s.durationLabel ?? s.duration) || null;
+      const imageUrl = imageUrls[i] || null;
+
       await client.query(
-        `INSERT INTO services (salon_id, user_id, name, duration, price, discounted_price, description)
-         VALUES ($1,$2,$3,$4,$5,$6,$7)`,
+        `INSERT INTO services (salon_id, user_id, name, duration, price, discounted_price, description, image_url)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
         [
           is_beauty_pro ? null : target_id,
           is_beauty_pro ? target_id : null,
@@ -311,7 +340,8 @@ export const servicesStep = async (req, res) => {
           duration,
           toMoney(s.price),
           toMoney(s.discountedPrice),
-          toStr(s.description)
+          toStr(s.description),
+          imageUrl
         ]
       );
     }

@@ -9,6 +9,7 @@ import {
 } from "../controllers/proController.js";
 
 import { requireAuth } from "../middleware/auth.js";
+import upload from "../middleware/upload.js";
 
 const router = Router();
 
@@ -17,7 +18,7 @@ router.post("/register", proRegister);
 
 router.post("/profile", profileStep);
 router.post("/portfolio", portfolioStep);
-router.post("/services", servicesStep);
+router.post("/services", upload.any(), servicesStep);
 router.post("/faqs", faqsStep);
 router.get("/me", myProProfile);
 
