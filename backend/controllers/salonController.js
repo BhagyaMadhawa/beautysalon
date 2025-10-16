@@ -151,14 +151,63 @@ export const createPortfolio = async (req, res) => {
 // Step 4: Add Services
 export const createServices = async (req, res) => {
   const { salonId } = req.params;
-  const { services } = req.body;
 
   try {
-    for (const svc of services) {
+    // Parse services from FormData
+    const services = [];
+    const serviceKeys = Object.keys(req.body).filter(key => key.startsWith('services['));
+
+    // Group by service index
+    const serviceMap = {};
+    serviceKeys.forEach(key => {
+      const match = key.match(/services\[(\d+)\]\[(\w+)\]/);
+      if (match) {
+        const [, index, field] = match;
+        if (!serviceMap[index]) serviceMap[index] = {};
+        serviceMap[index][field] = req.body[key];
+      }
+    });
+
+    // Convert to array
+    Object.keys(serviceMap).forEach(index => {
+      services.push(serviceMap[index]);
+    });
+
+    // Handle image uploads
+    const imageUrls = {};
+    if (req.files && req.files.length > 0) {
+      for (const file of req.files) {
+        const match = file.fieldname.match(/services\[(\d+)\]\[image\]/);
+        if (match) {
+          const index = match[1];
+          // Upload image
+          let imageUrl;
+          if (process.env.NODE_ENV === "production") {
+            const { put } = await import("@vercel/blob");
+            const safeName = (file.originalname || "service").replace(/\s+/g, "_");
+            const key = `services/${Date.now()}-${safeName}`;
+            const result = await put(key, file.buffer, {
+              access: "public",
+              contentType: file.mimetype,
+            });
+            imageUrl = result.url;
+          } else {
+            imageUrl = `/uploads/${file.filename}`;
+          }
+          imageUrls[index] = imageUrl;
+        }
+      }
+    }
+
+    // Insert services with images
+    for (let i = 0; i < services.length; i++) {
+      const svc = services[i];
+      const imageUrl = imageUrls[i] || null;
+
       await db.query(
-        `INSERT INTO services (salon_id, name, duration, price, discounted_price, description)
-         VALUES ($1, $2, $3, $4, $5, $6)`,
-        [salonId, svc.name, svc.duration, svc.price, svc.discounted_price, svc.description]
+        `INSERT INTO services (salon_id, name, duration, price, discounted_price, description, image_url)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+        [salonId, svc.serviceName, svc.duration, svc.price, svc.discountedPrice || null, svc.description, imageUrl]
       );
     }
 
