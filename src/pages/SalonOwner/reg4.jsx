@@ -80,6 +80,7 @@ export default function ListServices() {
         alert(data.error || "Failed to save services.");
         return;
       }
+      console.log("Response status:", formData);
       navigate("/regsal5", { state: { salonId, userId } });
     } catch {
       alert("An error occurred. Please try again.");
