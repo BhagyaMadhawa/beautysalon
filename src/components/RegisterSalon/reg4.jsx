@@ -91,6 +91,8 @@ export default function ListServices() {
         body: formData,
       });
 
+      console.log("Response status:", formData);
+
       if (!response.ok) {
         const data = await response.json();
         alert(data.error || "Failed to save services.");
@@ -99,6 +101,7 @@ export default function ListServices() {
 
       // On success, navigate to next step with salonId and userId
       navigate("/regsal5", { state: { salonId, userId } });
+      console.log("Response status:", formData);
     } catch (err) {
       alert("An error occurred. Please try again.");
     }
