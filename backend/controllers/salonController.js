@@ -207,7 +207,7 @@ export const createServices = async (req, res) => {
       await db.query(
         `INSERT INTO services (salon_id, name, duration, price, discounted_price, description, image_url)
          VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-        [salonId, svc.serviceName, svc.duration, svc.price, svc.discountedPrice || null, svc.description, imageUrl]
+        [salonId, svc.name, svc.duration, svc.price, svc.discounted_price || null, svc.description, imageUrl]
       );
     }
 

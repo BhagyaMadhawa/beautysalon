@@ -9,7 +9,7 @@ const durations = ["30 min", "45 min", "60 min", "90 min"];
 const initialServices = [
   {
     image: null,
-    serviceName: "",
+    name: "",
     duration: "30 min",
     price: "",
     discountedPrice: "",
@@ -17,7 +17,7 @@ const initialServices = [
   },
   {
     image: null,
-    serviceName: "",
+    name: "",
     duration: "30 min",
     price: "",
     discountedPrice: "",
@@ -55,7 +55,7 @@ export default function ListServices() {
       ...prev,
       {
         image: null,
-        serviceName: "",
+        name: "",
         duration: "30 min",
         price: "",
         discountedPrice: "",
@@ -75,7 +75,7 @@ export default function ListServices() {
     // Prepare form data for image upload
     const formData = new FormData();
     services.forEach((svc, idx) => {
-      formData.append(`services[${idx}][serviceName]`, svc.serviceName);
+      formData.append(`services[${idx}][name]`, svc.name);
       formData.append(`services[${idx}][duration]`, svc.duration);
       formData.append(`services[${idx}][price]`, svc.price);
       formData.append(`services[${idx}][discountedPrice]`, svc.discountedPrice);
@@ -196,9 +196,9 @@ export default function ListServices() {
                   </label>
                   <input
                     type="text"
-                    value={service.serviceName}
+                    value={service.name}
                     onChange={e =>
-                      handleFieldChange(i, "serviceName", e.target.value)
+                      handleFieldChange(i, "name", e.target.value)
                     }
                     className="w-full border border-gray-200 rounded-lg py-2 px-3 text-sm focus:outline-none focus:border-puce transition"
                     placeholder="Service Name"
