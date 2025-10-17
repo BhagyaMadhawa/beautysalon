@@ -7,8 +7,8 @@ const stepLabels = ["01", "02", "03", "04", "05", "06"];
 const durations = ["30 min", "45 min", "60 min", "90 min"];
 
 const initialServices = [
-  { images: [], serviceName: "", duration: "30 min", price: "", discountedPrice: "", description: "" },
-  { images: [], serviceName: "", duration: "30 min", price: "", discountedPrice: "", description: "" },
+  { image: null, serviceName: "", duration: "30 min", price: "", discountedPrice: "", description: "" },
+  { image: null, serviceName: "", duration: "30 min", price: "", discountedPrice: "", description: "" },
 ];
 
 export default function ListServices() {
@@ -30,33 +30,26 @@ export default function ListServices() {
     return URL.createObjectURL(file);
   }, []);
 
-  const handleImageChange = (i, files) => {
-    const fileArray = Array.from(files);
-    setServices(prev => {
-      const next = [...prev];
-      next[i].images = [...next[i].images, ...fileArray];
-      return next;
-    });
-  };
-
-  // Function to remove an image from a service
-  const handleRemoveImage = (serviceIndex, imageIndex) => {
-    setServices(prev => {
-      const next = [...prev];
-      const imageToRemove = next[serviceIndex].images[imageIndex];
-      
-      // Revoke the object URL if it's a File object
-      if (imageToRemove instanceof File) {
-        URL.revokeObjectURL(getImagePreviewUrl(imageToRemove));
-      }
-      
-      next[serviceIndex].images = next[serviceIndex].images.filter((_, idx) => idx !== imageIndex);
-      return next;
-    });
+  const handleImageChange = (i, file) => {
+    setServices((prev) =>
+      prev.map((svc, idx) =>
+        idx === i ? { ...svc, image: file } : svc
+      )
+    );
   };
 
   const handleAddService = () => {
-    setServices(prev => [...prev, { images: [], serviceName: "", duration: "30 min", price: "", discountedPrice: "", description: "" }]);
+    setServices((prev) => [
+      ...prev,
+      {
+        image: null,
+        serviceName: "",
+        duration: "30 min",
+        price: "",
+        discountedPrice: "",
+        description: "",
+      },
+    ]);
   };
 
   const handleSubmit = async (e) => {
@@ -66,20 +59,21 @@ export default function ListServices() {
       return;
     }
     try {
-      const payload = {
-        salon_id: salonId,
-        services: services.map(s => ({
-          name: s.serviceName,
-          duration: s.duration,
-          price: s.price,
-          discounted_price: s.discountedPrice || null,
-          description: s.description || null,
-        })),
-      };
+      const formData = new FormData();
+      formData.append("salon_id", salonId);
+      services.forEach((service, index) => {
+        formData.append(`services[${index}][name]`, service.serviceName);
+        formData.append(`services[${index}][duration]`, service.duration);
+        formData.append(`services[${index}][price]`, service.price);
+        formData.append(`services[${index}][discounted_price]`, service.discountedPrice || "");
+        formData.append(`services[${index}][description]`, service.description || "");
+        if (service.image) {
+          formData.append(`services[${index}][image]`, service.image);
+        }
+      });
       const res = await fetch(`https://beautysalon-qq6r.vercel.app/api/salons/${salonId}/services`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: formData,
       });
       const data = await res.json();
       if (!res.ok) {
@@ -131,31 +125,29 @@ export default function ListServices() {
             <div className="md:w-1/3">
               <label className="block w-full h-full cursor-pointer">
                 <div className="border-2 border-dashed border-puce rounded-xl bg-puce/10 p-6 flex flex-col items-center justify-center text-center min-h-[180px] hover:bg-puce/20 transition">
-                  {service.images.length > 0 ? (
-                    service.images.map((img, idx) => (
-                      <div key={idx} className="relative w-24 h-24 object-cover rounded-lg mb-2">
-                        <img src={URL.createObjectURL(img)} alt={`Service ${idx + 1}`} className="w-full h-full object-cover rounded-lg" />
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveImage(i, idx)}
-                          className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-100 transition-opacity duration-200 hover:bg-red-600"
-                          aria-label="Remove image"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      </div>
-                    ))
+                  {service.image ? (
+                    <div className="relative w-24 h-24 object-cover rounded-lg mb-2">
+                      <img src={getImagePreviewUrl(service.image)} alt={`Service ${i + 1}`} className="w-full h-full object-cover rounded-lg" />
+                      <button
+                        type="button"
+                        onClick={() => handleImageChange(i, null)}
+                        className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-100 transition-opacity duration-200 hover:bg-red-600"
+                        aria-label="Remove image"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
                   ) : (
                     <>
                       <Upload className="w-8 h-8 mx-auto text-puce mb-2" />
-                      <span className="font-semibold text-puce">Upload images</span>
-                      <span className="text-xs text-gray-500 mb-2">Drag &amp; Drop or click below to upload images</span>
+                      <span className="font-semibold text-puce">Upload image</span>
+                      <span className="text-xs text-gray-500 mb-2">Drag &amp; Drop or click below to upload image</span>
                     </>
                   )}
                   <span className="text-puce underline font-medium text-sm hover:text-puce1-600 transition">
-                    Upload images
+                    Upload image
                   </span>
-                  <input type="file" accept="image/*" multiple className="hidden" onChange={e => handleImageChange(i, e.target.files)} />
+                  <input type="file" accept="image/*" className="hidden" onChange={e => handleImageChange(i, e.target.files[0])} />
                 </div>
               </label>
             </div>
