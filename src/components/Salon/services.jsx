@@ -78,9 +78,12 @@ const ServicesSection = ({ salonId }) => {
             {/* Icon */}
             <div className="flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 bg-rose-100 rounded-lg flex items-center justify-center">
               <img
-                src="https://cdn-icons-png.flaticon.com/512/2922/2922510.png"
+                src={service.image_url || "https://cdn-icons-png.flaticon.com/512/2922/2922510.png"}
                 alt={service.name}
                 className="w-8 h-8 sm:w-10 sm:h-10 object-contain"
+                onError={(e) => {
+                  e.target.src = "https://cdn-icons-png.flaticon.com/512/2922/2922510.png";
+                }}
               />
             </div>
             {/* Details */}
