@@ -64,6 +64,16 @@ export default function ListServices() {
     ]);
   };
 
+  // Helper function to upload service image
+  const uploadServiceImage = async (file) => {
+    const formData = new FormData();
+    formData.append("profile_image", file); // Reuse the same endpoint as reg1.jsx
+    const res = await fetch("https://beautysalon-qq6r.vercel.app/api/salons/upload/profile-image", { method: "POST", body: formData });
+    if (!res.ok) throw new Error((await res.json()).error || "Failed to upload service image.");
+    const data = await res.json();
+    return data.imageUrl;
+  };
+
   // Submit handler
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -72,26 +82,50 @@ export default function ListServices() {
       return;
     }
 
-    // Prepare form data for image upload
-    const formData = new FormData();
-    services.forEach((svc, idx) => {
-      formData.append(`services[${idx}][name]`, svc.name);
-      formData.append(`services[${idx}][duration]`, svc.duration);
-      formData.append(`services[${idx}][price]`, svc.price);
-      formData.append(`services[${idx}][discountedPrice]`, svc.discountedPrice);
-      formData.append(`services[${idx}][description]`, svc.description);
-      if (svc.image) {
-        formData.append(`services[${idx}][image]`, svc.image);
-      }
-    });
+    // Filter out blank services (consider a service filled if name is not empty)
+    const filledServices = services.filter(svc => svc.name.trim() !== "");
+
+    if (filledServices.length === 0) {
+      alert("Please fill at least one service.");
+      return;
+    }
 
     try {
+      // Upload images first and get URLs
+      const servicesWithUrls = await Promise.all(
+        filledServices.map(async (svc) => {
+          let imageUrl = null;
+          if (svc.image) {
+            imageUrl = await uploadServiceImage(svc.image);
+          }
+          return {
+            name: svc.name,
+            duration: svc.duration,
+            price: svc.price,
+            discounted_price: svc.discountedPrice,
+            description: svc.description,
+            image_url: imageUrl,
+          };
+        })
+      );
+
+      // Prepare form data with URLs
+      const formData = new FormData();
+      servicesWithUrls.forEach((svc, idx) => {
+        formData.append(`services[${idx}][name]`, svc.name);
+        formData.append(`services[${idx}][duration]`, svc.duration);
+        formData.append(`services[${idx}][price]`, svc.price);
+        formData.append(`services[${idx}][discounted_price]`, svc.discounted_price);
+        formData.append(`services[${idx}][description]`, svc.description);
+        if (svc.image_url) {
+          formData.append(`services[${idx}][image_url]`, svc.image_url);
+        }
+      });
+
       const response = await fetch(`https://beautysalon-qq6r.vercel.app/api/salons/${salonId}/services`, {
         method: "POST",
         body: formData,
       });
-
-      console.log("Response status:", formData);
 
       if (!response.ok) {
         const data = await response.json();
@@ -101,7 +135,6 @@ export default function ListServices() {
 
       // On success, navigate to next step with salonId and userId
       navigate("/regsal5", { state: { salonId, userId } });
-      console.log("Response status:", formData);
     } catch (err) {
       alert("An error occurred. Please try again.");
     }
