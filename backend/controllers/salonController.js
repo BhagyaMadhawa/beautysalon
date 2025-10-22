@@ -200,7 +200,15 @@ export const createServices = async (req, res) => {
     // Update registration step to 3
     await updateRegistrationStep(salonIdNum, 3);
 
-    res.status(201).json({ message: "Services added" });
+    // Fetch and return the saved services for verification
+    const { rows: savedServices } = await db.query(
+      `SELECT * FROM services
+       WHERE salon_id = $1 AND status = 1
+       ORDER BY created_at DESC`,
+      [salonIdNum]
+    );
+
+    res.status(201).json({ message: "Services added", services: savedServices });
   } catch (err) {
     console.error("Error adding services:", err);
     res.status(500).json({ error: err.message });
