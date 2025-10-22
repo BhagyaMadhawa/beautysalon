@@ -35,9 +35,9 @@ export default function PortfolioStep() {
 
   // Extract image files from FileList or DataTransfer (handles .files and .items)
   const extractImageFiles = (input) => {
-    // 1) FileList (from <input> or native desktop drop)
+    // 1) FileList (from <input> with accept="image/*", no need to filter)
     if (input && typeof input.length === "number" && input.item) {
-      return Array.from(input).filter(f => f?.type?.startsWith?.("image/"));
+      return Array.from(input);
     }
     // 2) DataTransfer.files
     if (input?.files?.length) {
@@ -65,7 +65,16 @@ export default function PortfolioStep() {
     }
     setAlbums(prev => {
       const next = [...prev];
-      next[i].images = [...next[i].images, ...fileArray];
+      // Filter out duplicates based on file name, size, and lastModified for File objects
+      const existingKeys = new Set(
+        next[i].images.map(img =>
+          img instanceof File ? `${img.name}-${img.size}-${img.lastModified}` : img
+        )
+      );
+      const newFiles = fileArray.filter(file =>
+        !existingKeys.has(`${file.name}-${file.size}-${file.lastModified}`)
+      );
+      next[i].images = [...next[i].images, ...newFiles];
       return next;
     });
   };
@@ -219,26 +228,20 @@ export default function PortfolioStep() {
               </div>
 
               {/* Drop zone + click to select */}
-              <div
-                className={`border-2 border-dashed rounded-xl p-4 sm:p-6 flex flex-col items-center justify-center text-center mb-4 transition
+              <label
+                htmlFor={`upload-input-${i}`}
+                className={`border-2 border-dashed rounded-xl p-4 sm:p-6 flex flex-col items-center justify-center text-center mb-4 transition cursor-pointer
                   ${isDragActive ? "border-puce bg-puce/20" : "border-puce bg-puce/10 hover:bg-puce/20"}`}
-                role="button"
-                tabIndex={0}
                 onDragEnter={(e) => onDragEnter(e, i)}
                 onDragOver={(e) => onDragOver(e, i)}
                 onDragLeave={(e) => onDragLeave(e, i)}
                 onDrop={(e) => onDrop(e, i)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    document.getElementById(`upload-input-${i}`)?.click();
-                  }
-                }}
                 aria-label={`Upload images to album ${album.name || i + 1}`}
               >
                 <Upload className="w-8 h-8 mx-auto text-puce mb-2" />
                 <span className="font-semibold text-puce">Upload images</span>
                 <span className="text-xs text-gray-500 mb-2">
-                  Drag &amp; drop files here, or click below to select
+                  Drag &amp; drop files here, or click to select
                 </span>
                 <input
                   type="file"
@@ -248,17 +251,14 @@ export default function PortfolioStep() {
                   id={`upload-input-${i}`}
                   onChange={e => {
                     const files = e.target.files;
-                    e.target.value = ""; // allow re-selecting same files
                     handleUploadImages(i, files);
+                    e.target.value = ""; // allow re-selecting same files
                   }}
                 />
-                <label
-                  htmlFor={`upload-input-${i}`}
-                  className="text-puce underline font-medium text-sm cursor-pointer hover:text-puce1-600 transition"
-                >
+                <span className="text-puce underline font-medium text-sm hover:text-puce1-600 transition">
                   Choose images
-                </label>
-              </div>
+                </span>
+              </label>
 
               {/* Thumbnails */}
               {album.images.length > 0 && (

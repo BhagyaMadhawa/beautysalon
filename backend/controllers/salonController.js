@@ -151,6 +151,7 @@ export const createPortfolio = async (req, res) => {
 // Step 4: Add Services
 export const createServices = async (req, res) => {
   const { salonId } = req.params;
+  const salonIdNum = parseInt(salonId, 10);
 
   try {
     // Parse services from FormData
@@ -172,6 +173,8 @@ export const createServices = async (req, res) => {
     Object.keys(serviceMap).forEach(index => {
       services.push(serviceMap[index]);
     });
+
+    console.log('Parsed services:', services);
 
     // Handle image uploads
     const imageUrls = {};
@@ -199,20 +202,29 @@ export const createServices = async (req, res) => {
       }
     }
 
+    console.log('Inserting services for salonId:', salonIdNum, 'services count:', services.length);
+
     // Insert services with images
     for (let i = 0; i < services.length; i++) {
       const svc = services[i];
       const imageUrl = imageUrls[i] || null;
+      const price = parseFloat(svc.price) || 0;
+      const discountedPrice = svc.discounted_price ? parseFloat(svc.discounted_price) : null;
+      const description = svc.description || null;
+
+      console.log('Inserting service:', { name: svc.name, price, discountedPrice });
 
       await db.query(
         `INSERT INTO services (salon_id, name, duration, price, discounted_price, description, image_url)
          VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-        [salonId, svc.name, svc.duration, svc.price, svc.discounted_price || null, svc.description, imageUrl]
+        [salonIdNum, svc.name, svc.duration, price, discountedPrice, description, imageUrl]
       );
     }
 
+    console.log('All services inserted successfully');
+
     // Update registration step to 3
-    await updateRegistrationStep(salonId, 3);
+    await updateRegistrationStep(salonIdNum, 3);
 
     res.status(201).json({ message: "Services added" });
   } catch (err) {

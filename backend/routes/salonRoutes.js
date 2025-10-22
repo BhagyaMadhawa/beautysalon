@@ -38,6 +38,8 @@ import {
   deletePortfolio,
 } from "../controllers/salonController.js";
 
+import { getServiceCategories } from "../controllers/servicesController.js";
+
 import upload from "../middleware/upload.js";
 import { put } from "@vercel/blob";
 
@@ -76,6 +78,7 @@ router.post("/upload/profile-image", upload.single("profile_image"), async (req,
 // -------------------- PUBLIC GET ROUTES --------------------
 router.get("/random", getRandomSalons);
 router.get("/services", getFilteredServices);
+router.get("/service-categories", getServiceCategories);
 router.get("/user/:userId", getSalonByUserId);
 router.get("/salons", getFilteredSalons);
 router.get("/:salonId", getSalon);

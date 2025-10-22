@@ -1,0 +1,4 @@
+- [ ] Update extractImageFiles function to not filter for FileList inputs (since accept="image/*" ensures images)
+- [ ] Update handleUploadImages function to prevent duplicate files by checking existing images
+- [ ] Add onClick handler to the drop zone div to make the entire zone clickable for file selection
+- [ ] Test the changes to ensure selecting images works, drag and drop still works, and no duplicates in preview

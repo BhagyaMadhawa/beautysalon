@@ -1,17 +1,17 @@
 import { useState } from 'react'
 import {useNavigate} from "react-router-dom";
 
-import ListYourServices from '../components/RegisterSalon/reg4';
+import PortfolioStep from '../../components/RegisterSalon-not used/reg3';
 
 
-const SalonReg4 = () =>
+const SalonReg3 = () =>
 {
     const navigate = useNavigate();
 
     return(
          <>
      <div className="max-w-[98%] mx-auto mb-8 px-2 sm:px-4 justify-center ">
-        <ListYourServices/>
+        <PortfolioStep/>
       </div>
       
     
@@ -20,4 +20,4 @@ const SalonReg4 = () =>
     )
 }
 
-export default SalonReg4;
+export default SalonReg3;

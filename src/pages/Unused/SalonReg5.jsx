@@ -1,17 +1,17 @@
 import { useState } from 'react'
 import {useNavigate} from "react-router-dom";
 
-import AddFAQStep from '../components/RegisterSalon/reg6';
+import OperatingHoursStep from '../../components/RegisterSalon/reg5';
 
 
-const SalonReg6 = () =>
+const SalonReg5 = () =>
 {
     const navigate = useNavigate();
 
     return(
          <>
      <div className="max-w-[98%] mx-auto mb-8 px-2 sm:px-4 justify-center ">
-        <AddFAQStep/>
+        <OperatingHoursStep/>
       </div>
       
     
@@ -20,4 +20,4 @@ const SalonReg6 = () =>
     )
 }
 
-export default SalonReg6;
+export default SalonReg5;

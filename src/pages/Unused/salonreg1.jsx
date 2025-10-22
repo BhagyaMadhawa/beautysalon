@@ -1,17 +1,17 @@
 import { useState } from 'react'
 import {useNavigate} from "react-router-dom";
 
-import RegisterSalonForm from '../components/RegisterSalon/reg2';
+import SignupSalonOwner from '../../components/RegisterSalon-not used/reg1';
 
 
-const SalonReg2 = () =>
+const SalonReg1 = () =>
 {
     const navigate = useNavigate();
 
     return(
          <>
      <div className="max-w-[98%] mx-auto mb-8 px-2 sm:px-4 justify-center ">
-        <RegisterSalonForm/>
+        <SignupSalonOwner/>
       </div>
       
     
@@ -20,4 +20,4 @@ const SalonReg2 = () =>
     )
 }
 
-export default SalonReg2;
+export default SalonReg1;

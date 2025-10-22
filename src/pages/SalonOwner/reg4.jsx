@@ -1,14 +1,14 @@
 import React, { useState, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Upload, Check, X } from "lucide-react";
+import { Upload, Check, X, Loader } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 
 const stepLabels = ["01", "02", "03", "04", "05", "06"];
 const durations = ["30 min", "45 min", "60 min", "90 min"];
 
 const initialServices = [
-  { image: null, serviceName: "", duration: "30 min", price: "", discountedPrice: "", description: "" },
-  { image: null, serviceName: "", duration: "30 min", price: "", discountedPrice: "", description: "" },
+  { image: null, serviceName: "", duration: "30 min", price: "", discountedPrice: "", description: "", uploading: false, error: null },
+  { image: null, serviceName: "", duration: "30 min", price: "", discountedPrice: "", description: "", uploading: false, error: null },
 ];
 
 export default function ListServices() {
@@ -30,12 +30,27 @@ export default function ListServices() {
     return URL.createObjectURL(file);
   }, []);
 
-  const handleImageChange = (i, file) => {
+  const handleImageChange = async (i, file) => {
+    if (!file) return;
     setServices((prev) =>
       prev.map((svc, idx) =>
-        idx === i ? { ...svc, image: file } : svc
+        idx === i ? { ...svc, image: file, uploading: true, error: null } : svc
       )
     );
+    try {
+      const imageUrl = await uploadServiceImage(file);
+      setServices((prev) =>
+        prev.map((svc, idx) =>
+          idx === i ? { ...svc, image: imageUrl, uploading: false, error: null } : svc
+        )
+      );
+    } catch (error) {
+      setServices((prev) =>
+        prev.map((svc, idx) =>
+          idx === i ? { ...svc, uploading: false, error: error.message } : svc
+        )
+      );
+    }
   };
 
   const handleAddService = () => {
@@ -48,6 +63,8 @@ export default function ListServices() {
         price: "",
         discountedPrice: "",
         description: "",
+        uploading: false,
+        error: null,
       },
     ]);
   };
@@ -77,36 +94,32 @@ export default function ListServices() {
       return;
     }
 
-    try {
-      // Upload images first and get URLs
-      const servicesWithUrls = await Promise.all(
-        filledServices.map(async (svc) => {
-          let imageUrl = null;
-          if (svc.image) {
-            imageUrl = await uploadServiceImage(svc.image);
-          }
-          return {
-            serviceName: svc.serviceName,
-            duration: svc.duration,
-            price: svc.price,
-            discounted_price: svc.discountedPrice,
-            description: svc.description,
-            image_url: imageUrl,
-          };
-        })
-      );
+    // Check for any uploading or error states
+    const hasUploading = filledServices.some(svc => svc.uploading);
+    const hasErrors = filledServices.some(svc => svc.error);
 
-      // Prepare form data with URLs
+    if (hasUploading) {
+      alert("Please wait for all image uploads to complete.");
+      return;
+    }
+
+    if (hasErrors) {
+      alert("Please resolve image upload errors before submitting.");
+      return;
+    }
+
+    try {
+      // Prepare form data with URLs (images already uploaded)
       const formData = new FormData();
       formData.append("salon_id", salonId);
-      servicesWithUrls.forEach((service, index) => {
+      filledServices.forEach((service, index) => {
         formData.append(`services[${index}][name]`, service.serviceName);
         formData.append(`services[${index}][duration]`, service.duration);
         formData.append(`services[${index}][price]`, service.price);
-        formData.append(`services[${index}][discounted_price]`, service.discounted_price || "");
+        formData.append(`services[${index}][discounted_price]`, service.discountedPrice || "");
         formData.append(`services[${index}][description]`, service.description || "");
-        if (service.image_url) {
-          formData.append(`services[${index}][image_url]`, service.image_url);
+        if (service.image && typeof service.image === 'string') {
+          formData.append(`services[${index}][image_url]`, service.image);
         }
       });
       const res = await fetch(`https://beautysalon-qq6r.vercel.app/api/salons/${salonId}/services`, {
@@ -118,7 +131,26 @@ export default function ListServices() {
         alert(data.error || "Failed to save services.");
         return;
       }
-      console.log("Response status:", formData);
+      // Log the FormData contents for debugging
+      const formDataObj = {};
+      for (let [key, value] of formData.entries()) {
+        formDataObj[key] = value;
+      }
+      console.log("Request data being sent to backend:", formDataObj);
+
+      // Fetch the saved services from backend and log them
+      try {
+        const getRes = await fetch(`https://beautysalon-qq6r.vercel.app/api/salons/${salonId}/services`);
+        const servicesData = await getRes.json();
+        if (getRes.ok) {
+          console.log("Saved services from backend:", servicesData.services);
+        } else {
+          console.error("Failed to fetch saved services:", servicesData.error);
+        }
+      } catch (error) {
+        console.error("Error fetching saved services:", error);
+      }
+
       navigate("/regsal5", { state: { salonId, userId } });
     } catch {
       alert("An error occurred. Please try again.");
@@ -164,7 +196,24 @@ export default function ListServices() {
             <div className="md:w-1/3">
               <label className="block w-full h-full cursor-pointer">
                 <div className="border-2 border-dashed border-puce rounded-xl bg-puce/10 p-6 flex flex-col items-center justify-center text-center min-h-[180px] hover:bg-puce/20 transition">
-                  {service.image ? (
+                  {service.uploading ? (
+                    <div className="flex flex-col items-center">
+                      <Loader className="w-8 h-8 animate-spin text-puce mb-2" />
+                      <span className="text-sm text-gray-500">Uploading...</span>
+                    </div>
+                  ) : service.error ? (
+                    <div className="flex flex-col items-center">
+                      <X className="w-8 h-8 text-red-500 mb-2" />
+                      <span className="text-sm text-red-500 mb-2">{service.error}</span>
+                      <button
+                        type="button"
+                        onClick={() => handleImageChange(i, service.image)}
+                        className="text-puce underline font-medium text-sm hover:text-puce1-600 transition"
+                      >
+                        Retry
+                      </button>
+                    </div>
+                  ) : service.image ? (
                     <div className="relative w-24 h-24 object-cover rounded-lg mb-2">
                       <img src={getImagePreviewUrl(service.image)} alt={`Service ${i + 1}`} className="w-full h-full object-cover rounded-lg" />
                       <button
