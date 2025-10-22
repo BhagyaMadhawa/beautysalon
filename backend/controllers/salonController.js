@@ -176,43 +176,17 @@ export const createServices = async (req, res) => {
 
     console.log('Parsed services:', services);
 
-    // Handle image uploads
-    const imageUrls = {};
-    if (req.files && req.files.length > 0) {
-      for (const file of req.files) {
-        const match = file.fieldname.match(/services\[(\d+)\]\[image\]/);
-        if (match) {
-          const index = match[1];
-          // Upload image
-          let imageUrl;
-          if (process.env.NODE_ENV === "production") {
-            const { put } = await import("@vercel/blob");
-            const safeName = (file.originalname || "service").replace(/\s+/g, "_");
-            const key = `services/${Date.now()}-${safeName}`;
-            const result = await put(key, file.buffer, {
-              access: "public",
-              contentType: file.mimetype,
-            });
-            imageUrl = result.url;
-          } else {
-            imageUrl = `/uploads/${file.filename}`;
-          }
-          imageUrls[index] = imageUrl;
-        }
-      }
-    }
-
     console.log('Inserting services for salonId:', salonIdNum, 'services count:', services.length);
 
-    // Insert services with images
+    // Insert services with images (images are already uploaded and URLs provided)
     for (let i = 0; i < services.length; i++) {
       const svc = services[i];
-      const imageUrl = imageUrls[i] || null;
+      const imageUrl = svc.image_url || null;
       const price = parseFloat(svc.price) || 0;
       const discountedPrice = svc.discounted_price ? parseFloat(svc.discounted_price) : null;
       const description = svc.description || null;
 
-      console.log('Inserting service:', { name: svc.name, price, discountedPrice });
+      console.log('Inserting service:', { name: svc.name, price, discountedPrice, imageUrl });
 
       await db.query(
         `INSERT INTO services (salon_id, name, duration, price, discounted_price, description, image_url)
