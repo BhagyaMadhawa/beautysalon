@@ -157,14 +157,15 @@ export default function SalonDetailsTab({ userId, salonId }) {
     try {
       const token = localStorage.getItem('token');
 
-      // Update salon basic info
+      // Update salon basic info (exclude type as it's read-only)
+      const { type, ...updateData } = salonData;
       const salonResponse = await fetch(`https://beautysalon-qq6r.vercel.app/api/salons/${salonId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify(salonData)
+        body: JSON.stringify(updateData)
       });
 
       if (!salonResponse.ok) {
@@ -295,6 +296,14 @@ export default function SalonDetailsTab({ userId, salonId }) {
               value={salonData.phone}
               onChange={(e) => handleSalonDataChange('phone', e.target.value)}
             />
+          </div>
+        </div>
+
+        {/* Type (Read-only display) */}
+        <div className="flex-1 flex flex-col text-gray-900 text-sm">
+          <label className="mb-1">Type</label>
+          <div className="flex-1 border border-gray-300 rounded-lg py-2 px-3 text-sm bg-gray-100">
+            {salonData.type === 'salon_owner' ? 'Salon Owner' : salonData.type === 'beauty_professional' ? 'Beauty Professional' : 'Unknown'}
           </div>
         </div>
 

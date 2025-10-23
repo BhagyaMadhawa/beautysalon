@@ -185,6 +185,17 @@ export const createServices = async (req, res) => {
     } else if (req.body && req.body.services && Array.isArray(req.body.services)) {
       console.log('[DEBUG] createServices - Found services array in body');
       services = req.body.services;
+    } else if (req.body && req.body.name) {
+      console.log('[DEBUG] createServices - Single service sent directly');
+      // Handle single service sent as direct fields
+      services = [{
+        name: req.body.name,
+        duration: req.body.duration,
+        price: req.body.price,
+        discounted_price: req.body.discounted_price,
+        description: req.body.description,
+        image_url: req.body.image_url
+      }];
     } else if (req.body && typeof req.body === 'object' && req.body !== null) {
       console.log('[DEBUG] createServices - Parsing FormData format');
       // Parse from FormData format
