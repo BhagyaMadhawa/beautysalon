@@ -166,25 +166,32 @@ export const createServices = async (req, res) => {
 
     const userId = salonRows[0].user_id;
 
-    // Parse services from FormData
-    const services = [];
-    const serviceKeys = Object.keys(req.body).filter(key => key.startsWith('services['));
+    // Parse services from FormData or JSON
+    let services = [];
 
-    // Group by service index
-    const serviceMap = {};
-    serviceKeys.forEach(key => {
-      const match = key.match(/services\[(\d+)\]\[(\w+)\]/);
-      if (match) {
-        const [, index, field] = match;
-        if (!serviceMap[index]) serviceMap[index] = {};
-        serviceMap[index][field] = req.body[key];
-      }
-    });
+    // Check if services are sent as JSON array
+    if (req.body.services && Array.isArray(req.body.services)) {
+      services = req.body.services;
+    } else {
+      // Parse from FormData format
+      const serviceKeys = Object.keys(req.body).filter(key => key.startsWith('services['));
 
-    // Convert to array
-    Object.keys(serviceMap).forEach(index => {
-      services.push(serviceMap[index]);
-    });
+      // Group by service index
+      const serviceMap = {};
+      serviceKeys.forEach(key => {
+        const match = key.match(/services\[(\d+)\]\[(\w+)\]/);
+        if (match) {
+          const [, index, field] = match;
+          if (!serviceMap[index]) serviceMap[index] = {};
+          serviceMap[index][field] = req.body[key];
+        }
+      });
+
+      // Convert to array
+      Object.keys(serviceMap).forEach(index => {
+        services.push(serviceMap[index]);
+      });
+    }
 
     console.log('Parsed services:', services);
 
