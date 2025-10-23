@@ -175,6 +175,9 @@ export const createServices = async (req, res) => {
     // Parse services from FormData or JSON
     let services = [];
 
+    console.log('[DEBUG] createServices - req.body keys:', Object.keys(req.body || {}));
+    console.log('[DEBUG] createServices - req.files:', req.files ? req.files.length : 'none');
+
     // Check if req.body exists and services are sent as JSON array
     if (req.body && Array.isArray(req.body)) {
       console.log('[DEBUG] createServices - Body is array, using directly');
