@@ -220,10 +220,10 @@ export default function ServicesTab({ userId, salonId }) {
     // Prepare form data for image upload
     const formData = new FormData();
     services.forEach((svc, idx) => {
-      formData.append(`services[${idx}][serviceName]`, svc.serviceName);
+      formData.append(`services[${idx}][name]`, svc.serviceName || svc.name);
       formData.append(`services[${idx}][duration]`, svc.duration);
       formData.append(`services[${idx}][price]`, svc.price);
-      formData.append(`services[${idx}][discountedPrice]`, svc.discountedPrice);
+      formData.append(`services[${idx}][discounted_price]`, svc.discountedPrice || svc.discounted_price);
       formData.append(`services[${idx}][description]`, svc.description);
       if (svc.image) {
         formData.append(`services[${idx}][image]`, svc.image);
