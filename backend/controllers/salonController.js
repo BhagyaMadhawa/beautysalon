@@ -169,10 +169,10 @@ export const createServices = async (req, res) => {
     // Parse services from FormData or JSON
     let services = [];
 
-    // Check if services are sent as JSON array
+    // Check if req.body exists and services are sent as JSON array
     if (req.body && Array.isArray(req.body)) {
       services = req.body;
-    } else if (req.body.services && Array.isArray(req.body.services)) {
+    } else if (req.body && req.body.services && Array.isArray(req.body.services)) {
       services = req.body.services;
     } else {
       // Parse from FormData format
