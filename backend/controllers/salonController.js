@@ -391,7 +391,10 @@ export const getSalon = async (req, res) => {
     const salonData = {
        id: salon.id,
       name: salon.name,
+      email: salon.email,
+      phone: salon.phone,
       description: salon.description,
+      type: salon.type,
       profile_image_url: salon.profile_image_url,
       average_rating: parseFloat(salon.average_rating) || 0,
       total_reviews: parseInt(salon.total_reviews) || 0,
