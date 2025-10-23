@@ -13,10 +13,10 @@ export default function ServicesTab({ userId, salonId }) {
   const [saving, setSaving] = useState(false);
   const [newService, setNewService] = useState({
     image: null,
-    serviceName: "",
+    name: "",
     duration: "30 min",
     price: "",
-    discountedPrice: "",
+    discounted_price: "",
     description: "",
   });
   const [showAddForm, setShowAddForm] = useState(false);
@@ -91,7 +91,7 @@ export default function ServicesTab({ userId, salonId }) {
   };
 
   const handleSaveNewService = async () => {
-    if (!newService.serviceName || !newService.price) {
+    if (!newService.name || !newService.price) {
       setAlert({ type: 'warning', message: 'Please fill in service name and price' });
       return;
     }
@@ -101,10 +101,10 @@ export default function ServicesTab({ userId, salonId }) {
       const token = localStorage.getItem('token');
       const formData = new FormData();
 
-      formData.append('name', newService.serviceName);
+      formData.append('name', newService.name);
       formData.append('duration', newService.duration);
       formData.append('price', newService.price);
-      formData.append('discounted_price', newService.discountedPrice || null);
+      formData.append('discounted_price', newService.discounted_price || null);
       formData.append('description', newService.description);
 
       if (newService.image) {
@@ -122,10 +122,10 @@ export default function ServicesTab({ userId, salonId }) {
       if (response.ok) {
         setNewService({
           image: null,
-          serviceName: "",
+          name: "",
           duration: "30 min",
           price: "",
-          discountedPrice: "",
+          discounted_price: "",
           description: "",
         });
         setShowAddForm(false);
@@ -220,11 +220,11 @@ export default function ServicesTab({ userId, salonId }) {
     // Prepare form data for image upload
     const formData = new FormData();
     services.forEach((svc, idx) => {
-      formData.append(`services[${idx}][name]`, svc.serviceName || svc.name);
-      formData.append(`services[${idx}][duration]`, svc.duration);
-      formData.append(`services[${idx}][price]`, svc.price);
-      formData.append(`services[${idx}][discounted_price]`, svc.discountedPrice || svc.discounted_price);
-      formData.append(`services[${idx}][description]`, svc.description);
+      formData.append(`services[${idx}][name]`, svc.serviceName || svc.name || "");
+      formData.append(`services[${idx}][duration]`, svc.duration || "");
+      formData.append(`services[${idx}][price]`, svc.price || "");
+      formData.append(`services[${idx}][discounted_price]`, svc.discountedPrice || svc.discounted_price || null);
+      formData.append(`services[${idx}][description]`, svc.description || "");
       if (svc.image) {
         formData.append(`services[${idx}][image]`, svc.image);
       }
@@ -326,7 +326,7 @@ export default function ServicesTab({ userId, salonId }) {
                       type="text"
                       value={service.serviceName || service.name || ""}
                       onChange={e =>
-                        handleFieldChange(i, "serviceName", e.target.value)
+                        handleFieldChange(i, "name", e.target.value)
                       }
                       className="w-full border border-gray-200 rounded-lg py-2 px-3 text-sm focus:outline-none focus:border-puce transition"
                       placeholder="Service Name"
@@ -474,9 +474,9 @@ export default function ServicesTab({ userId, salonId }) {
                   </label>
                   <input
                     type="text"
-                    value={newService.serviceName}
+                    value={newService.name}
                     onChange={e =>
-                      handleNewServiceChange("serviceName", e.target.value)
+                      handleNewServiceChange("name", e.target.value)
                     }
                     className="w-full border border-gray-200 rounded-lg py-2 px-3 text-sm focus:outline-none focus:border-puce transition"
                     placeholder="Service Name"
