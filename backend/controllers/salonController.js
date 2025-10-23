@@ -154,6 +154,18 @@ export const createServices = async (req, res) => {
   const salonIdNum = parseInt(salonId, 10);
 
   try {
+    // Get user_id from salon
+    const { rows: salonRows } = await db.query(
+      'SELECT user_id FROM salons WHERE id = $1 AND status = 1',
+      [salonIdNum]
+    );
+
+    if (salonRows.length === 0) {
+      return res.status(404).json({ error: 'Salon not found' });
+    }
+
+    const userId = salonRows[0].user_id;
+
     // Parse services from FormData
     const services = [];
     const serviceKeys = Object.keys(req.body).filter(key => key.startsWith('services['));
@@ -176,7 +188,7 @@ export const createServices = async (req, res) => {
 
     console.log('Parsed services:', services);
 
-    console.log('Inserting services for salonId:', salonIdNum, 'services count:', services.length);
+    console.log('Inserting services for salonId:', salonIdNum, 'userId:', userId, 'services count:', services.length);
 
     // Insert services with images (images are already uploaded and URLs provided)
     for (let i = 0; i < services.length; i++) {
@@ -189,9 +201,9 @@ export const createServices = async (req, res) => {
       console.log('Inserting service:', { name: svc.name, price, discountedPrice, imageUrl });
 
       await db.query(
-        `INSERT INTO services (salon_id, name, duration, price, discounted_price, description, image_url)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-        [salonIdNum, svc.name, svc.duration, price, discountedPrice, description, imageUrl]
+        `INSERT INTO services (salon_id, user_id, name, duration, price, discounted_price, description, image_url)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+        [salonIdNum, userId, svc.name, svc.duration, price, discountedPrice, description, imageUrl]
       );
     }
 
