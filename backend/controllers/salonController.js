@@ -174,7 +174,7 @@ export const createServices = async (req, res) => {
       services = req.body;
     } else if (req.body && req.body.services && Array.isArray(req.body.services)) {
       services = req.body.services;
-    } else {
+    } else if (req.body && typeof req.body === 'object' && req.body !== null) {
       // Parse from FormData format
       const serviceKeys = Object.keys(req.body).filter(key => key.startsWith('services['));
 
