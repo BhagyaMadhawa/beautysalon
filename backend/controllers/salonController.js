@@ -154,6 +154,10 @@ export const createServices = async (req, res) => {
   const salonIdNum = parseInt(salonId, 10);
 
   try {
+    console.log('[DEBUG] createServices - Request body structure:', JSON.stringify(req.body, null, 2));
+    console.log('[DEBUG] createServices - Request headers:', req.headers);
+    console.log('[DEBUG] createServices - Content-Type:', req.headers['content-type']);
+
     // Get user_id from salon
     const { rows: salonRows } = await db.query(
       'SELECT user_id FROM salons WHERE id = $1 AND status = 1',
@@ -161,22 +165,28 @@ export const createServices = async (req, res) => {
     );
 
     if (salonRows.length === 0) {
+      console.log('[DEBUG] createServices - Salon not found for id:', salonIdNum);
       return res.status(404).json({ error: 'Salon not found' });
     }
 
     const userId = salonRows[0].user_id;
+    console.log('[DEBUG] createServices - Found salon with userId:', userId);
 
     // Parse services from FormData or JSON
     let services = [];
 
     // Check if req.body exists and services are sent as JSON array
     if (req.body && Array.isArray(req.body)) {
+      console.log('[DEBUG] createServices - Body is array, using directly');
       services = req.body;
     } else if (req.body && req.body.services && Array.isArray(req.body.services)) {
+      console.log('[DEBUG] createServices - Found services array in body');
       services = req.body.services;
     } else if (req.body && typeof req.body === 'object' && req.body !== null) {
+      console.log('[DEBUG] createServices - Parsing FormData format');
       // Parse from FormData format
       const serviceKeys = Object.keys(req.body).filter(key => key.startsWith('services['));
+      console.log('[DEBUG] createServices - Found service keys:', serviceKeys);
 
       // Group by service index
       const serviceMap = {};
@@ -195,31 +205,59 @@ export const createServices = async (req, res) => {
       });
     }
 
-    console.log('Parsed services:', services);
+    console.log('[DEBUG] createServices - Parsed services:', JSON.stringify(services, null, 2));
+    console.log('[DEBUG] createServices - Inserting services for salonId:', salonIdNum, 'userId:', userId, 'services count:', services.length);
 
-    console.log('Inserting services for salonId:', salonIdNum, 'userId:', userId, 'services count:', services.length);
+    if (services.length === 0) {
+      console.log('[DEBUG] createServices - No services to insert');
+      return res.status(400).json({ error: 'No services provided' });
+    }
 
     // Insert services with images (images are already uploaded and URLs provided)
     for (let i = 0; i < services.length; i++) {
       const svc = services[i];
+      console.log('[DEBUG] createServices - Processing service', i, ':', svc);
+
+      // Validate required fields
+      if (!svc.name) {
+        console.log('[DEBUG] createServices - Service missing name:', svc);
+        return res.status(400).json({ error: `Service ${i + 1} is missing name` });
+      }
+
       const imageUrl = svc.image_url || null;
       const price = parseFloat(svc.price) || 0;
       const discountedPrice = svc.discounted_price ? parseFloat(svc.discounted_price) : null;
       const description = svc.description || null;
 
-      console.log('Inserting service:', { name: svc.name, price, discountedPrice, imageUrl });
+      console.log('[DEBUG] createServices - Inserting service:', {
+        salon_id: salonIdNum,
+        user_id: userId,
+        name: svc.name,
+        duration: svc.duration,
+        price,
+        discounted_price: discountedPrice,
+        description,
+        image_url: imageUrl
+      });
 
-      await db.query(
-        `INSERT INTO services (salon_id, user_id, name, duration, price, discounted_price, description, image_url)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-        [salonIdNum, userId, svc.name, svc.duration, price, discountedPrice, description, imageUrl]
-      );
+      try {
+        await db.query(
+          `INSERT INTO services (salon_id, user_id, name, duration, price, discounted_price, description, image_url)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+          [salonIdNum, userId, svc.name, svc.duration, price, discountedPrice, description, imageUrl]
+        );
+        console.log('[DEBUG] createServices - Successfully inserted service:', svc.name);
+      } catch (insertErr) {
+        console.error('[DEBUG] createServices - Error inserting service:', svc.name, insertErr);
+        throw insertErr;
+      }
     }
 
-    console.log('All services inserted successfully');
+    console.log('[DEBUG] createServices - All services inserted successfully');
 
     // Update registration step to 3
     await updateRegistrationStep(salonIdNum, 3);
+    console.log('[DEBUG] createServices - Updated registration step to 3');
 
     // Fetch and return the saved services for verification
     const { rows: savedServices } = await db.query(
@@ -229,9 +267,11 @@ export const createServices = async (req, res) => {
       [salonIdNum]
     );
 
+    console.log('[DEBUG] createServices - Returning saved services count:', savedServices.length);
     res.status(201).json({ message: "Services added", services: savedServices });
   } catch (err) {
-    console.error("Error adding services:", err);
+    console.error('[DEBUG] createServices - Error adding services:', err);
+    console.error('[DEBUG] createServices - Error stack:', err.stack);
     res.status(500).json({ error: err.message });
   }
 };

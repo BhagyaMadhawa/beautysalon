@@ -96,7 +96,7 @@ router.get("/:salonId/languages", getLanguages);
 router.post("/owneuser", createSalonOwner);
 router.post("/", createSalon);
 router.post("/:salonId/portfolios", createPortfolio);
-router.post("/:salonId/services", express.json(), createServices);
+router.post("/:salonId/services", createServices);
 router.post("/:salonId/hours", setOperatingHours);
 router.post("/:salonId/faqs", addFaqs);
 
