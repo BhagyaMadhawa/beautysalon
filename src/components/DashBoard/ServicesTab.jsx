@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from 'react-router-dom';
 import { motion } from "framer-motion";
-import { Upload, Check, Trash2 } from "lucide-react";
+import { Upload, Check, Trash2, Loader, X } from "lucide-react";
 import Alert from '../Alert';
 import ConfirmationModal from '../ConfirmationModal';
+import uploadServiceImage from '../../lib/uploadServiceImage';
 
 const durations = ["30 min", "45 min", "60 min", "90 min"];
 
@@ -18,6 +19,8 @@ export default function ServicesTab({ userId, salonId }) {
     price: "",
     discounted_price: "",
     description: "",
+    uploading: false,
+    error: null,
   });
   const [showAddForm, setShowAddForm] = useState(false);
   const [alert, setAlert] = useState(null);
@@ -64,12 +67,27 @@ export default function ServicesTab({ userId, salonId }) {
     );
   };
 
-  const handleImageChange = (i, file) => {
+  const handleImageChange = async (i, file) => {
+    if (!file) return;
     setServices((prev) =>
       prev.map((svc, idx) =>
-        idx === i ? { ...svc, image: file } : svc
+        idx === i ? { ...svc, image: file, uploading: true, error: null } : svc
       )
     );
+    try {
+      const imageUrl = await uploadServiceImage(file);
+      setServices((prev) =>
+        prev.map((svc, idx) =>
+          idx === i ? { ...svc, image: imageUrl, uploading: false, error: null } : svc
+        )
+      );
+    } catch (error) {
+      setServices((prev) =>
+        prev.map((svc, idx) =>
+          idx === i ? { ...svc, uploading: false, error: error.message } : svc
+        )
+      );
+    }
   };
 
   const handleNewServiceChange = (field, value) => {
@@ -79,11 +97,15 @@ export default function ServicesTab({ userId, salonId }) {
     }));
   };
 
-  const handleNewImageChange = (file) => {
-    setNewService(prev => ({
-      ...prev,
-      image: file
-    }));
+  const handleNewImageChange = async (file) => {
+    if (!file) return;
+    setNewService(prev => ({ ...prev, image: file, uploading: true, error: null }));
+    try {
+      const imageUrl = await uploadServiceImage(file);
+      setNewService(prev => ({ ...prev, image: imageUrl, uploading: false, error: null }));
+    } catch (error) {
+      setNewService(prev => ({ ...prev, uploading: false, error: error.message }));
+    }
   };
 
   const handleAddService = () => {
@@ -280,9 +302,13 @@ export default function ServicesTab({ userId, salonId }) {
               <div className="md:w-1/3">
                 <label className="block w-full h-full cursor-pointer">
                   <div className="border-2 border-dashed border-puce rounded-xl bg-puce/10 p-6 flex flex-col items-center justify-center text-center min-h-[180px] hover:bg-puce/20 transition">
-                    {service.image ? (
+                    {service.uploading ? (
+                      <Loader className="w-8 h-8 mx-auto text-puce mb-2 animate-spin" />
+                    ) : service.error ? (
+                      <X className="w-8 h-8 mx-auto text-red-500 mb-2" />
+                    ) : service.image ? (
                       <img
-                        src={URL.createObjectURL(service.image)}
+                        src={typeof service.image === 'string' ? service.image : URL.createObjectURL(service.image)}
                         alt="Service"
                         className="w-24 h-24 object-cover rounded-lg mb-2"
                       />
@@ -437,9 +463,13 @@ export default function ServicesTab({ userId, salonId }) {
               <label className="block mb-1 font-medium text-gray-700">Upload Image</label>
               <label className="block w-full h-full cursor-pointer">
                 <div className="border-2 border-dashed border-puce rounded-xl bg-puce/10 p-6 flex flex-col items-center justify-center text-center min-h-[180px] hover:bg-puce/20 transition">
-                  {newService.image ? (
+                  {newService.uploading ? (
+                    <Loader className="w-8 h-8 mx-auto text-puce mb-2 animate-spin" />
+                  ) : newService.error ? (
+                    <X className="w-8 h-8 mx-auto text-red-500 mb-2" />
+                  ) : newService.image ? (
                     <img
-                      src={URL.createObjectURL(newService.image)}
+                      src={typeof newService.image === 'string' ? newService.image : URL.createObjectURL(newService.image)}
                       alt="New Service"
                       className="w-24 h-24 object-cover rounded-lg mb-2"
                     />
