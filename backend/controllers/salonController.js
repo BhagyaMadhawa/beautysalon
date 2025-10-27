@@ -1252,6 +1252,9 @@ export const getFilteredSalons = async (req, res) => {
     const loc = String(location).trim();
     const minR = Number(minRating) || 0;
 
+    // Check if any filters are applied
+    const hasFilters = st || loc || minR > 0;
+
     let query = `
       SELECT
           s.id,
@@ -1280,7 +1283,7 @@ export const getFilteredSalons = async (req, res) => {
       LEFT JOIN salon_addresses sa ON sa.salon_id = s.id AND sa.status = 1
       LEFT JOIN reviews r ON r.salon_id = s.id AND r.status = 1
       WHERE s.status = 1
-        AND s.type != 'beauty_professional'
+        ${hasFilters ? 'AND s.is_approved = TRUE' : ''}
     `;
 
     const params = [];
@@ -1457,6 +1460,9 @@ export const getFilteredBeautyProfessionals = async (req, res) => {
     const loc = String(location).trim();
     const minR = Number(minRating) || 0;
 
+    // Check if any filters are applied
+    const hasFilters = st || loc || minR > 0;
+
     let query = `
       SELECT
           s.id,
@@ -1484,7 +1490,7 @@ export const getFilteredBeautyProfessionals = async (req, res) => {
       LEFT JOIN reviews r ON r.salon_id = s.id AND r.status = 1
       WHERE s.status = 1
         AND s.type = 'beauty_professional'
-        AND s.is_approved = TRUE
+        ${hasFilters ? 'AND s.is_approved = TRUE' : ''}
     `;
 
     const params = [];
