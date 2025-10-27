@@ -217,7 +217,7 @@ const BrowseTalentByCategory = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: index * 0.1 }}
-            onClick={() => navigate(`/salon/${salon.id}`)}
+            onClick={() => navigate(`/salon/${salon.id}`, { state: { salon } })}
             style={{ cursor: 'pointer' }}
           >
             <SalonCard 

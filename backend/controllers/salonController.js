@@ -20,7 +20,7 @@ export const createSalonOwner = async (req, res) => {
   }
 
   // Validate password length
-  if (password.length < 6) {
+  if (password.length < 8) {
     return res.status(400).json({ error: 'Password must be at least 8 characters.' });
   }
 
@@ -154,10 +154,6 @@ export const createServices = async (req, res) => {
   const salonIdNum = parseInt(salonId, 10);
 
   try {
-    console.log('[DEBUG] createServices - Request body structure:', JSON.stringify(req.body, null, 2));
-    console.log('[DEBUG] createServices - Request headers:', req.headers);
-    console.log('[DEBUG] createServices - Content-Type:', req.headers['content-type']);
-
     // Get user_id from salon
     const { rows: salonRows } = await db.query(
       'SELECT user_id FROM salons WHERE id = $1 AND status = 1',
@@ -165,28 +161,20 @@ export const createServices = async (req, res) => {
     );
 
     if (salonRows.length === 0) {
-      console.log('[DEBUG] createServices - Salon not found for id:', salonIdNum);
       return res.status(404).json({ error: 'Salon not found' });
     }
 
     const userId = salonRows[0].user_id;
-    console.log('[DEBUG] createServices - Found salon with userId:', userId);
 
     // Parse services from FormData or JSON
     let services = [];
 
-    console.log('[DEBUG] createServices - req.body keys:', Object.keys(req.body || {}));
-    console.log('[DEBUG] createServices - req.files:', req.files ? req.files.length : 'none');
-
     // Check if req.body exists and services are sent as JSON array
     if (req.body && Array.isArray(req.body)) {
-      console.log('[DEBUG] createServices - Body is array, using directly');
       services = req.body;
     } else if (req.body && req.body.services && Array.isArray(req.body.services)) {
-      console.log('[DEBUG] createServices - Found services array in body');
       services = req.body.services;
     } else if (req.body && req.body.name) {
-      console.log('[DEBUG] createServices - Single service sent directly');
       // Handle single service sent as direct fields
       services = [{
         name: req.body.name,
@@ -197,10 +185,8 @@ export const createServices = async (req, res) => {
         image_url: req.body.image_url
       }];
     } else if (req.body && typeof req.body === 'object' && req.body !== null) {
-      console.log('[DEBUG] createServices - Parsing FormData format');
       // Parse from FormData format
       const serviceKeys = Object.keys(req.body).filter(key => key.startsWith('services['));
-      console.log('[DEBUG] createServices - Found service keys:', serviceKeys);
 
       // Group by service index
       const serviceMap = {};
@@ -219,22 +205,16 @@ export const createServices = async (req, res) => {
       });
     }
 
-    console.log('[DEBUG] createServices - Parsed services:', JSON.stringify(services, null, 2));
-    console.log('[DEBUG] createServices - Inserting services for salonId:', salonIdNum, 'userId:', userId, 'services count:', services.length);
-
     if (services.length === 0) {
-      console.log('[DEBUG] createServices - No services to insert');
       return res.status(400).json({ error: 'No services provided' });
     }
 
     // Insert services with images (images are already uploaded and URLs provided)
     for (let i = 0; i < services.length; i++) {
       const svc = services[i];
-      console.log('[DEBUG] createServices - Processing service', i, ':', svc);
 
       // Validate required fields
       if (!svc.name) {
-        console.log('[DEBUG] createServices - Service missing name:', svc);
         return res.status(400).json({ error: `Service ${i + 1} is missing name` });
       }
 
@@ -243,35 +223,20 @@ export const createServices = async (req, res) => {
       const discountedPrice = svc.discounted_price ? parseFloat(svc.discounted_price) : null;
       const description = svc.description || null;
 
-      console.log('[DEBUG] createServices - Inserting service:', {
-        salon_id: salonIdNum,
-        user_id: userId,
-        name: svc.name,
-        duration: svc.duration,
-        price,
-        discounted_price: discountedPrice,
-        description,
-        image_url: imageUrl
-      });
-
       try {
         await db.query(
           `INSERT INTO services (salon_id, user_id, name, duration, price, discounted_price, description, image_url)
            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
           [salonIdNum, userId, svc.name, svc.duration, price, discountedPrice, description, imageUrl]
         );
-        console.log('[DEBUG] createServices - Successfully inserted service:', svc.name);
       } catch (insertErr) {
-        console.error('[DEBUG] createServices - Error inserting service:', svc.name, insertErr);
+        console.error('Error inserting service:', svc.name, insertErr);
         throw insertErr;
       }
     }
 
-    console.log('[DEBUG] createServices - All services inserted successfully');
-
     // Update registration step to 3
     await updateRegistrationStep(salonIdNum, 3);
-    console.log('[DEBUG] createServices - Updated registration step to 3');
 
     // Fetch and return the saved services for verification
     const { rows: savedServices } = await db.query(
@@ -281,11 +246,9 @@ export const createServices = async (req, res) => {
       [salonIdNum]
     );
 
-    console.log('[DEBUG] createServices - Returning saved services count:', savedServices.length);
     res.status(201).json({ message: "Services added", services: savedServices });
   } catch (err) {
-    console.error('[DEBUG] createServices - Error adding services:', err);
-    console.error('[DEBUG] createServices - Error stack:', err.stack);
+    console.error('Error adding services:', err);
     res.status(500).json({ error: err.message });
   }
 };
@@ -383,21 +346,12 @@ export const getSalon = async (req, res) => {
       [salonId]
     );
 
-    console.log("Database query result:", rows); // Debug log
-
     if (rows.length === 0) {
       return res.status(404).json({ error: "Salon not found" });
     }
 
     const salon = rows[0];
-    console.log("Salon data with address:", salon); // Debug log
-    
-   
 
-    // Calculate local time (simplified - would need timezone info for accurate calculation)
-    const now = new Date();
-    const localTime = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    
     // Prepare response with all required data for profile card
     const salonData = {
        id: salon.id,
@@ -1299,21 +1253,23 @@ export const getFilteredSalons = async (req, res) => {
     const minR = Number(minRating) || 0;
 
     let query = `
-      SELECT 
+      SELECT
           s.id,
           s.name,
           s.description,
           s.profile_image_url,
+          s.user_id,
+          s.type,
           COALESCE(AVG(r.rating), 0)::float AS average_rating,
           COUNT(r.id)::int AS total_reviews,
           sa.country,
           sa.city,
           sa.full_address,
           (
-            SELECT json_agg(pi.image_url) 
+            SELECT json_agg(pi.image_url)
             FROM (
-              SELECT pi.image_url 
-              FROM portfolios p 
+              SELECT pi.image_url
+              FROM portfolios p
               JOIN portfolio_images pi ON pi.portfolio_id = p.id AND pi.status = 1
               WHERE p.salon_id = s.id AND p.status = 1
               ORDER BY pi.created_at DESC
@@ -1323,7 +1279,8 @@ export const getFilteredSalons = async (req, res) => {
       FROM salons s
       LEFT JOIN salon_addresses sa ON sa.salon_id = s.id AND sa.status = 1
       LEFT JOIN reviews r ON r.salon_id = s.id AND r.status = 1
-      WHERE s.status = 1 
+      WHERE s.status = 1
+        AND s.type != 'beauty_professional'
     `;
 
     const params = [];
@@ -1477,6 +1434,125 @@ export const updateLanguages = async (req, res) => {
     res.json({ message: 'Languages updated successfully' });
   } catch (err) {
     console.error("Error updating languages:", err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// Get filtered beauty professionals for search functionality
+export const getFilteredBeautyProfessionals = async (req, res) => {
+  try {
+    const {
+      searchTerm = '',
+      minRating = 0,
+      location = '',
+      page = 1,
+      limit = 10
+    } = req.query;
+
+    const pageNum = Math.max(parseInt(page) || 1, 1);
+    const lim = Math.min(Math.max(parseInt(limit) || 10, 1), 50);
+    const offset = (pageNum - 1) * lim;
+
+    const st = String(searchTerm).trim();
+    const loc = String(location).trim();
+    const minR = Number(minRating) || 0;
+
+    let query = `
+      SELECT
+          s.id,
+          s.name,
+          s.description,
+          s.profile_image_url,
+          COALESCE(AVG(r.rating), 0)::float AS average_rating,
+          COUNT(r.id)::int AS total_reviews,
+          sa.country,
+          sa.city,
+          sa.full_address,
+          (
+            SELECT STRING_AGG(sl.language, ', ')
+            FROM salon_languages sl
+            WHERE sl.salon_id = s.id AND sl.status = 1
+          ) as languages,
+          (
+            SELECT ski.stylist_career
+            FROM salon_key_info ski
+            WHERE ski.salon_id = s.id AND ski.status = 1
+            LIMIT 1
+          ) as experience
+      FROM salons s
+      LEFT JOIN salon_addresses sa ON sa.salon_id = s.id AND sa.status = 1
+      LEFT JOIN reviews r ON r.salon_id = s.id AND r.status = 1
+      WHERE s.status = 1
+        AND s.type = 'beauty_professional'
+        AND s.is_approved = TRUE
+    `;
+
+    const params = [];
+    let i = 1;
+
+    if (st) {
+      query += ` AND (s.name ILIKE $${i} OR s.description ILIKE $${i})`;
+      params.push(`%${st}%`);
+      i++;
+    }
+
+    if (loc) {
+      query += ` AND (sa.city ILIKE $${i} OR sa.country ILIKE $${i} OR sa.full_address ILIKE $${i})`;
+      params.push(`%${loc}%`);
+      i++;
+    }
+
+    query += ` GROUP BY s.id, sa.country, sa.city, sa.full_address`;
+
+    if (minR > 0) {
+      query += ` HAVING COALESCE(AVG(r.rating), 0) >= $${i}`;
+      params.push(minR);
+      i++;
+    }
+
+    const countQuery = `
+      SELECT COUNT(*)::int AS total_count FROM (${query}) subq
+    `;
+    const { rows: countRows } = await db.query(countQuery, params);
+    const totalCount = countRows[0]?.total_count ?? 0;
+
+    query += ` ORDER BY average_rating DESC, total_reviews DESC, s.id DESC
+               LIMIT $${i} OFFSET $${i + 1}`;
+    const dataParams = [...params, lim, offset];
+
+    const { rows } = await db.query(query, dataParams);
+
+    const beautyProfessionals = rows.map(bp => {
+      const images = bp.profile_image_url
+        ? [bp.profile_image_url]
+        : ["https://images.unsplash.com/photo-1594736797933-d0401ba2fe65?w=400&h=400&fit=crop&crop=face"];
+
+      return {
+        id: bp.id,
+        name: bp.name,
+        description: bp.description || 'Professional beauty services with expertise and care.',
+        images,
+        experience: bp.experience || `${Math.floor(Math.random() * 10) + 1} Years Experience`,
+        languages: bp.languages ? bp.languages.split(', ') : ['English'],
+        location: bp.full_address ? `${bp.city}, ${bp.country}` : 'Location not specified',
+        specialties: ['Beauty Services'],
+        rating: bp.average_rating || 0,
+        reviews: bp.total_reviews || 0
+      };
+    });
+
+    res.json({
+      beautyProfessionals,
+      pagination: {
+        currentPage: pageNum,
+        totalPages: Math.max(Math.ceil(totalCount / lim), 1),
+        totalCount,
+        hasNext: pageNum * lim < totalCount,
+        hasPrev: pageNum > 1
+      }
+    });
+  } catch (err) {
+    console.error("Error fetching filtered beauty professionals:", err);
     res.status(500).json({ error: err.message });
   }
 };

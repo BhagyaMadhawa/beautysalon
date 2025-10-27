@@ -22,6 +22,7 @@ import {
   getLanguages,
   getRandomSalons,
   getFilteredServices,
+  getFilteredBeautyProfessionals,
   updateSalon,
   updateSalonAddress,
   updateSocialLink,
@@ -82,6 +83,7 @@ router.get("/services", getFilteredServices);
 router.get("/service-categories", getServiceCategories);
 router.get("/user/:userId", getSalonByUserId);
 router.get("/salons", getFilteredSalons);
+router.get("/beauty-professionals", getFilteredBeautyProfessionals);
 router.get("/:salonId", getSalon);
 router.get("/:salonId/services", getServices);
 router.get("/:salonId/portfolios", getPortfolios);

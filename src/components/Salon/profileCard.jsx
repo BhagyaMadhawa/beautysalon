@@ -6,7 +6,8 @@ import { getFullImageUrl, getFallbackProfileImage } from '../../lib/imageUtils';
 const SalonCard = ({
   salonId,
   onSendMessage,
-  onToggleFavorite
+  onToggleFavorite,
+  salonData // Add salonData prop
 }) => {
   const [salon, setSalon] = useState(null);
   const [isFavorited, setIsFavorited] = useState(false);
@@ -15,14 +16,46 @@ const SalonCard = ({
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetchSalonDetails();
-  }, [salonId]);
+    if (salonData) {
+      // If salonData is provided from navigation state
+      if (salonData.type === 'beauty_professional') {
+        // For beauty professionals, fetch additional details as some items might be missing
+        fetchBeautyProfessionalDetails(salonData);
+      } else {
+        // For regular salons, use the data directly without additional fetch
+        setSalon(salonData);
+        setLoading(false);
+      }
+    } else {
+      // Fallback to original behavior if no salonData provided
+      fetchSalonDetails();
+    }
+  }, [salonId, salonData]);
 
   const fetchSalonDetails = async () => {
     try {
       setLoading(true);
+      // First, fetch salon details to check the type
       const data = await api(`/api/salons/${salonId}`);
-      setSalon(data.salon || {});
+      const salonData = data.salon || {};
+
+      // If the salon type is 'beauty_professional', fetch from the beauty professionals endpoint
+      if (salonData.type === 'beauty_professional') {
+        const proData = await api(`/api/salons/beauty-professionals?searchTerm=${salonData.name}&limit=1`);
+        if (proData.beautyProfessionals && proData.beautyProfessionals.length > 0) {
+          const proDetails = proData.beautyProfessionals[0];
+          setSalon({
+            ...salonData,
+            experience: proDetails.experience,
+            languages: proDetails.languages,
+            specialties: proDetails.specialties
+          });
+        } else {
+          setSalon(salonData);
+        }
+      } else {
+        setSalon(salonData);
+      }
       setError(null);
     } catch (err) {
       console.error('Error fetching salon details:', err);
@@ -47,6 +80,28 @@ const SalonCard = ({
           profile_image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
         }
       });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchBeautyProfessionalDetails = async (salonData) => {
+    try {
+      const proData = await api(`/api/salons/beauty-professionals?searchTerm=${salonData.name}&limit=1`);
+      if (proData.beautyProfessionals && proData.beautyProfessionals.length > 0) {
+        const proDetails = proData.beautyProfessionals[0];
+        setSalon({
+          ...salonData,
+          experience: proDetails.experience,
+          languages: proDetails.languages,
+          specialties: proDetails.specialties
+        });
+      } else {
+        setSalon(salonData);
+      }
+    } catch (err) {
+      console.error('Error fetching beauty professional details:', err);
+      setSalon(salonData); // Use basic salon data if professional details fail
     } finally {
       setLoading(false);
     }

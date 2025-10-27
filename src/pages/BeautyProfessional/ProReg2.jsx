@@ -70,7 +70,16 @@ function PortfolioStep() {
     if (!fileArray.length) return;
     setAlbums(prev => {
       const next = [...prev];
-      next[i].images = [...next[i].images, ...fileArray];
+      // Filter out duplicates based on file name, size, and lastModified for File objects
+      const existingKeys = new Set(
+        next[i].images.map(img =>
+          img instanceof File ? `${img.name}-${img.size}-${img.lastModified}` : img
+        )
+      );
+      const newFiles = fileArray.filter(file =>
+        !existingKeys.has(`${file.name}-${file.size}-${file.lastModified}`)
+      );
+      next[i].images = [...next[i].images, ...newFiles];
       return next;
     });
   };
@@ -114,6 +123,13 @@ function PortfolioStep() {
   const onNext = async () => {
     setError(null);
     if (!userId) return setError("Missing user id. Please complete Step 1 again.");
+
+    // Check if any album has images but no name
+    const hasUnnamedAlbumWithImages = albums.some(album => album.images.length > 0 && !album.album_name?.trim());
+    if (hasUnnamedAlbumWithImages) {
+      setError("Please provide a name for all albums that contain images.");
+      return;
+    }
 
     try {
       setLoading(true);
@@ -208,44 +224,35 @@ function PortfolioStep() {
               </div>
 
               {/* Drop zone + click to select */}
-              <div
-                className={`border-2 border-dashed rounded-xl p-4 sm:p-6 flex flex-col items-center text-center mb-4 transition
+              <label
+                htmlFor={`upload-input-${i}`}
+                className={`border-2 border-dashed rounded-xl p-4 sm:p-6 flex flex-col items-center text-center mb-4 transition cursor-pointer
                   ${isDragActive ? "border-puce bg-puce/20" : "border-puce bg-puce/10 hover:bg-puce/20"}`}
-                role="button"
-                tabIndex={0}
                 onDragEnter={(e) => onDragEnter(e, i)}
                 onDragOver={(e) => onDragOver(e, i)}
                 onDragLeave={(e) => onDragLeave(e, i)}
                 onDrop={(e) => onDrop(e, i)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    document.getElementById(`upload-input-${i}`)?.click();
-                  }
-                }}
                 aria-label={`Upload images to album ${album.album_name || i + 1}`}
               >
                 <Upload className="w-8 h-8 mx-auto text-puce mb-2" />
                 <span className="font-semibold text-puce">Upload images</span>
-                <span className="text-xs text-gray-500 mb-2">Drag &amp; drop files here, or click below to select</span>
-                <label
-                  htmlFor={`upload-input-${i}`}
-                  className="text-puce underline font-medium text-sm hover:text-puce1-600 transition cursor-pointer"
-                >
+                <span className="text-xs text-gray-500 mb-2">Drag &amp; drop files here, or click to select</span>
+                <span className="text-puce underline font-medium text-sm hover:text-puce1-600 transition">
                   Choose images
-                </label>
+                </span>
                 <input
-                  id={`upload-input-${i}`}
                   type="file"
                   multiple
                   accept="image/*"
                   className="hidden"
+                  id={`upload-input-${i}`}
                   onChange={(e)=>{
                     const files = e.target.files;
-                    e.target.value = ""; // allow same-file reselect
                     handleUploadImages(i, files);
+                    e.target.value = ""; // allow re-selecting same files
                   }}
                 />
-              </div>
+              </label>
 
               {Array.isArray(album.images) && album.images.length>0 && (
                 <div className="flex overflow-x-auto gap-3 py-2">

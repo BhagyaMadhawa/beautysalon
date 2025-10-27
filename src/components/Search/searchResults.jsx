@@ -194,7 +194,7 @@ const SearchResults = () => {
                     }}
                     onFavorite={handleFavorite}
                     isFavorited={favorites.has(salon.id)}
-                    onClick={() => navigate(`/salon/${salon.id}`)}
+                    onClick={() => navigate(`/salon/${salon.id}`, { state: { salon } })}
                   />
                 ))}
               </AnimatePresence>

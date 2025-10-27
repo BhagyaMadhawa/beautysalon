@@ -21,7 +21,7 @@ export default function ProReg1() {
   const userId = location.state?.userId || null;
 
   // Profile image file for upload
-  const [profileFile, setProfileFile] = useState(null);
+  const [profile, setProfile] = useState(null);
   const [profilePreview, setProfilePreview] = useState(null);
 
   // Professional public profile fields
@@ -58,8 +58,9 @@ export default function ProReg1() {
   const handleProfileChange = (e) => {
     const file = e.target.files?.[0];
     if (file) {
-      setProfileFile(file);
-      setProfilePreview(URL.createObjectURL(file));
+      setProfile(file);
+      const previewUrl = URL.createObjectURL(file);
+      setProfilePreview(previewUrl);
     }
   };
 
@@ -89,6 +90,16 @@ export default function ProReg1() {
       prev.includes(lang) ? prev.filter((l) => l !== lang) : [...prev, lang]
     );
 
+  // Optional helper: upload profile image (only if your backend allows unauthenticated upload)
+  const uploadProfileImage = async (file) => {
+    const formData = new FormData();
+    formData.append("profile_image", file);
+    const res = await fetch("https://beautysalon-qq6r.vercel.app/api/salons/upload/profile-image", { method: "POST", body: formData });
+    if (!res.ok) throw new Error((await res.json()).error || "Failed to upload profile image.");
+    const data = await res.json();
+    return data.imageUrl; // server returns { imageUrl }
+  };
+
   // Submit to backend (auth required; cookie is set in Step 1)
   const onNext = async (e) => {
     e.preventDefault();
@@ -102,22 +113,11 @@ export default function ProReg1() {
       let profileImageUrl = null;
 
       // Upload profile image first if selected
-      if (profileFile) {
-        const formData = new FormData();
-        formData.append("profile_image", profileFile);
-
-        const uploadRes = await fetch("https://beautysalon-qq6r.vercel.app/api/salons/upload/profile-image", {
-          method: "POST",
-          body: formData,
-          credentials: 'include',
-        });
-
-        if (uploadRes.ok) {
-          const uploadData = await uploadRes.json();
-          profileImageUrl = uploadData.imageUrl;
-        } else {
-          const uploadError = await uploadRes.json();
-          setError(uploadError.error || "Failed to upload profile image");
+      if (profile) {
+        try {
+          profileImageUrl = await uploadProfileImage(profile);
+        } catch (err) {
+          setError(err.message);
           setLoading(false);
           return;
         }

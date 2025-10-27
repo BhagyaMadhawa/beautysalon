@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import '../App.css';
 
 import SalonCard from '../components/Salon/profileCard';
@@ -15,6 +15,8 @@ import ReviewPopup from '../components/Salon/writeReview';
 const Salon = () => {
   const [refreshReviews, setRefreshReviews] = useState(0);
   const { salonId } = useParams(); // Get salonId from route parameters
+  const location = useLocation();
+  const salonData = location.state?.salon; // Get salon data from navigation state
 
   const handleReviewSubmitted = () => {
     // Increment refresh counter to trigger reviews refresh
@@ -28,7 +30,7 @@ const Salon = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column: Profile Card + Info */}
           <div className="lg:col-span-1 flex flex-col gap-6">
-            <SalonCard salonId={salonId} />
+            <SalonCard salonId={salonId} salonData={salonData} />
             <ProfileInfo salonId={salonId} />
           </div>
           {/* Right Column: Main Content */}
