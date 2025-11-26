@@ -67,12 +67,14 @@ const SearchResults = () => {
   const handleOptionSelect = (option) => {
     setItemsPerPage(option);
     setIsOpen(false);
+    setCurrentPage(1); // Reset to first page when changing items per page
   };
 
   const [searchValue, setSearchValue] = useState('');
   const handleClear = () => {
     setSearchValue('');
     setSearchTerm('');
+    setCurrentPage(1);
   };
 
   const [filters, setFilters] = useState({});
@@ -81,6 +83,8 @@ const SearchResults = () => {
   const [resultCount, setResultCount] = useState(null);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pagination, setPagination] = useState({});
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -91,7 +95,7 @@ const SearchResults = () => {
           searchTerm: searchTerm,
           minRating: filters.rating || 0,
           location: filters.location || '',
-          page: 1,
+          page: currentPage,
           limit: parseInt(itemsPerPage)
         }).toString();
 
@@ -101,10 +105,12 @@ const SearchResults = () => {
         });
 
         setSalons(response.salons || []);
+        setPagination(response.pagination || {});
         setResultCount(response.pagination?.totalCount || 0);
       } catch (error) {
         console.error('Error fetching salons:', error);
         setSalons([]);
+        setPagination({});
         setResultCount(0);
       } finally {
         setLoading(false);
@@ -112,7 +118,7 @@ const SearchResults = () => {
     };
 
     fetchSalons();
-  }, [searchTerm, filters, itemsPerPage]);
+  }, [searchTerm, filters, itemsPerPage, currentPage]);
 
   const handleFavorite = (id) => {
     const newFavorites = new Set(favorites);
@@ -199,6 +205,47 @@ const SearchResults = () => {
                 ))}
               </AnimatePresence>
             </motion.div>
+
+            {/* Pagination */}
+            {!loading && pagination.totalPages > 1 && (
+              <div className="flex justify-center items-center mt-8 space-x-2">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Previous
+                </button>
+
+                <div className="flex space-x-1">
+                  {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
+                    const pageNum = Math.max(1, currentPage - 2) + i;
+                    if (pageNum > pagination.totalPages) return null;
+                    return (
+                      <button
+                        key={pageNum}
+                        onClick={() => setCurrentPage(pageNum)}
+                        className={`px-3 py-2 text-sm font-medium rounded-md ${
+                          pageNum === currentPage
+                            ? 'text-white bg-puce1-500 border border-puce1-500'
+                            : 'text-gray-500 bg-white border border-gray-300 hover:bg-gray-50'
+                        }`}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, pagination.totalPages))}
+                  disabled={currentPage === pagination.totalPages}
+                  className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Next
+                </button>
+              </div>
+            )}
           </main>
         </div>
       </div>
