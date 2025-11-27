@@ -13,8 +13,8 @@ const ServiceCard = ({ service, onFavorite, isFavorited, onClick }) => {
     location,
     specialties = [],
     rating = 0,
-    reviews = 0,
-    price,
+    reviews = 0 ,
+    price ,
   } = service || {};
 
   const hasLanguages = Array.isArray(languages) && languages.length > 0;
